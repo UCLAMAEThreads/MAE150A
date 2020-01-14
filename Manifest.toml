@@ -633,7 +633,7 @@ version = "0.1.0"
 
 [[ViscousFlow]]
 deps = ["ColorTypes", "DiffRules", "DocStringExtensions", "Documenter", "FFTW", "FastGaussQuadrature", "FileIO", "ForwardDiff", "Interpolations", "IterativeSolvers", "JLD", "LaTeXStrings", "LinearAlgebra", "LinearMaps", "PlotUtils", "Plots", "ProgressMeter", "PyCall", "PyPlot", "RecipesBase", "Reexport", "Serialization", "SparseArrays", "SpecialFunctions", "StaticArrays", "Statistics"]
-git-tree-sha1 = "e4d77939df8be070b290e02e2d23d092b654e99a"
+git-tree-sha1 = "e6726ebacd9ed03d612a279b685e00fe04189179"
 repo-rev = "master"
 repo-url = "https://github.com/jdeldre/ViscousFlow.jl.git"
 uuid = "103da179-b3e4-57c1-99a4-586354eb2c5a"
