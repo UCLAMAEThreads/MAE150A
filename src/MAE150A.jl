@@ -7,6 +7,7 @@ module MAE150A
   @reexport using OrdinaryDiffEq
   using JLD
 
+  export load_ns_solution, compute_trajectory
 
   function load_ns_solution(filen)
 
@@ -42,8 +43,6 @@ module MAE150A
 
    return dR
  end
-
- vfcn!(dR,R,p,t) = _vfcn!(dR,R,p,t,ufield,vfield)
 
  function compute_trajectory(ufield,vfield,X₀::Tuple,Tmax::Real,Δt::Real)
 
