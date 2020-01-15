@@ -5,6 +5,7 @@ module MAE150A
   @reexport using ViscousFlow
   @reexport using Plots
   @reexport using OrdinaryDiffEq
+  using JLD
 
 
   function load_ns_solution(filen)
@@ -31,7 +32,7 @@ module MAE150A
     ψ = streamfunction(w,sys) #.+ sys.U∞[1]*yg'
     ψ .+= sys.U∞[1]*yg';
 
-    return sys, body, q, ω, ψ                  
+    return sys, body, q, ω, ψ
 
   end
 
