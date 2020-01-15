@@ -36,4 +36,26 @@ module MAE150A
 
   end
 
+  function _vfcn!(dR,R,p,t,u,v)
+    dR[1] = u(R[1],R[2])
+    dR[2] = v(R[1],R[2])
+
+   return dR
+ end
+
+ vfcn!(dR,R,p,t) = _vfcn!(dR,R,p,t,ufield,vfield)
+
+ function compute_trajectory(ufield,vfield,X₀::Tuple,Tmax::Real,Δt::Real)
+
+   u0 = [X₀[1],X₀[2]]
+   tspan=(0.0,Tmax)
+
+   vfcn!(dR,R,p,t) = _vfcn!(dR,R,p,t,ufield,vfield)
+
+   Path = ODEProblem(vfcn!,u0,tspan)
+   sol = solve(Path,ABM54(), dt = Δt, maxiters = 1e8, adaptive = false, dense = false)
+
+   return sol
+ end
+
 end
