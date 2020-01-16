@@ -6,6 +6,7 @@ module MAE150A
   @reexport using Plots
   @reexport using OrdinaryDiffEq
   @reexport using LaTeXStrings
+  using Interpolations
   using JLD
 
   export initialize_ns_solver,save_ns_solution,load_ns_solution, get_flowfield, compute_trajectory
@@ -123,19 +124,24 @@ module MAE150A
   # TRAJECTORY CALCULATION #
 
   """
-     compute_trajectory(u,v,X₀::Tuple,Tmax,Δt)
+     compute_trajectory(u,v,X₀::Vector/Vector{Vector},Tmax,Δt)
 
-  Calculate the trajectory of a particle with initial location `X₀`. The arguments
+  Calculate the trajectory of a particle with initial location(s) `X₀`. More than
+  one particle can be tracked by providing a vector of locations (a vector of 2-
+  dimensional vectors) in X₀. The arguments
   `u` and `v` are interpolated velocity field components, `Tmax` is the final
   integration time, and `Δt` is the time step size. The output is the solution
-  structure for the `OrdinaryDiffEq` package.
+  structure for the `OrdinaryDiffEq` package (or, for multiple particles, a vector
+  of such solution structures).
   """
-  function compute_trajectory(ufield,vfield,X₀::Tuple,Tmax::Real,Δt::Real)
+  function compute_trajectory(ufield::AbstractInterpolation{T,2},
+                              vfield::AbstractInterpolation{T,2},
+                              X₀::Vector{S},Tmax::Real,Δt::Real) where {T,S<:Real}
 
-    u0 = [X₀[1],X₀[2]]
+    u0 = X₀
     tspan=(0.0,Tmax)
 
-    vfcn!(dR,R,p,t) = _vfcn!(dR,R,p,t,ufield,vfield)
+    vfcn!(dR,R,p,t) = _vfcn_autonomous!(dR,R,p,t,ufield,vfield)
 
     Path = ODEProblem(vfcn!,u0,tspan)
     sol = solve(Path,ABM54(), dt = Δt, maxiters = 1e8, adaptive = false, dense = false)
@@ -143,7 +149,34 @@ module MAE150A
     return sol
   end
 
-  function _vfcn!(dR,R,p,t,u,v)
+  function compute_trajectory(ufield::AbstractInterpolation{T,2},vfield::AbstractInterpolation{T,2},pts::Vector{Vector{S}},Tmax,Δt) where {T,S<:Real}
+
+    sol_array = ODESolution[]
+    for X₀ in pts
+      sol = compute_trajectory(ufield,vfield,X₀,Tmax,Δt)
+      push!(sol_array,sol)
+    end
+    return sol_array
+
+  end
+
+  """
+     compute_trajectory(vel::Edges,sys,X₀::Vector/Vector{Vector},Tmax,Δt)
+
+  Calculate the trajectory of a particle with initial location(s) `X₀`. The argument
+  `vel` is edge-type grid data, `sys` is a Navier-Stokes type system, `Tmax` is the final
+  integration time, and `Δt` is the time step size. The output is the solution
+  structure for the `OrdinaryDiffEq` package.
+  """
+  compute_trajectory(u::Edges, sys::NavierStokes, X₀,Tmax,Δt) =
+      compute_trajectory(interpolatable_field(u,sys.grid)...,X₀,Tmax,Δt)
+
+
+
+
+
+
+  function _vfcn_autonomous!(dR,R,p,t,u,v)
     dR[1] = u(R[1],R[2])
     dR[2] = v(R[1],R[2])
 
