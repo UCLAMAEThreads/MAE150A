@@ -8,8 +8,25 @@ module MAE150A
   @reexport using LaTeXStrings
   using Interpolations
   using JLD
+  #using PyPlot
 
-  export initialize_ns_solver,save_ns_solution,load_ns_solution, get_flowfield, compute_trajectory
+  export initialize_environment,initialize_ns_solver,
+        save_ns_solution,load_ns_solution, get_flowfield,
+        compute_trajectory, field_along_trajectory,
+        convective_acceleration, ddt
+
+  function initialize_environment()
+
+    # Set the back end for Plots
+    #pyplot()
+    rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
+
+    # Ensure that LaTeX stuff is handled
+    rcParams["text.usetex"] = true
+
+    return nothing
+
+  end
 
   """
       initialize_ns_solver(Re::Real,U∞::Tuple,Δx::Real,xlim::Tuple,ylim::Tuple,body::Body[,Δt = Nothing])
@@ -172,10 +189,6 @@ module MAE150A
       compute_trajectory(interpolatable_field(u,sys.grid)...,X₀,Tmax,Δt)
 
 
-
-
-
-
   function _vfcn_autonomous!(dR,R,p,t,u,v)
     dR[1] = u(R[1],R[2])
     dR[2] = v(R[1],R[2])
@@ -183,6 +196,84 @@ module MAE150A
    return dR
  end
 
+ """
+    field_along_trajectory(f::GridData,sys::NavierStokes,traj::ODESolution)
+
+ Evaluate field `f` (given as grid data) along the trajectory specified by `traj`.
+ The output is the history of `f` along this trajectory. If `f` is a vector field,
+ then the component histories are output as a tuple.
+ """
+ function field_along_trajectory(v::VectorGridData,sys::NavierStokes,traj::ODESolution)
+   vfield_x, vfield_y = interpolatable_field(v,sys.grid)
+
+   vx_traj = eltype(v)[]
+   vy_traj = eltype(v)[]
+   for x in traj.u
+     push!(vx_traj,vfield_x(x...))
+     push!(vy_traj,vfield_y(x...))
+   end
+
+   return vx_traj, vy_traj
+ end
+
+ function field_along_trajectory(s::ScalarGridData,sys::NavierStokes,traj::ODESolution)
+   sfield = interpolatable_field(s,sys.grid)
+
+   s_traj = eltype(sfield)[]
+   for x in traj.u
+     push!(s_traj,sfield(x...))
+   end
+
+   return s_traj
+ end
+
+ # Convective acceleration
+ """
+    convective_acceleration(u,sys)
+
+ Given grid velocity data `u` for Navier-Stokes system `sys`, calculation
+ the convective acceleration field on the grid u.grad(u).
+ """
+ function convective_acceleration(u::VectorGridData,sys::NavierStokes)
+   ugradu = zero(u)
+   convective_derivative!(ugradu,u)
+   ugradu ./= cellsize(sys.grid)
+
+   return ugradu
+
+ end
+
+ """
+    ddt(u::AbstractVector,Δt[,mydiff=:backward_diff])
+
+ Calculate the time derivative of vector data `u`, with time step size `Δt`.
+ The default method is backward differencing, but this can be changed to
+ `:forward_diff` or `:central_diff`.
+ """
+ function ddt(u::AbstractVector{T},Δt::Real;mydiff::Symbol=:forward_diff) where {T}
+    return eval(mydiff)(u)/Δt
+ end
+
+ # Some basic differencing routines
+ function backward_diff(u::AbstractVector{T}) where {T}
+     du = zero(u)
+     du[2:end] .= u[2:end] .- u[1:end-1]
+     u[1] = u[2]
+     return du
+ end
+ function forward_diff(u::AbstractVector{T}) where {T}
+     du = zero(u)
+     du[1:end-1] .= u[2:end] .- u[1:end-1]
+     u[end] = u[end-1]
+     return du
+ end
+ function central_diff(u::AbstractVector{T}) where {T}
+     du = zero(u)
+     du[2:end-1] .= 0.5*u[3:end] .- 0.5*u[1:end-2]
+     u[1] = u[2]
+     u[end] = u[end-1]
+     return du
+ end
 
 
 
