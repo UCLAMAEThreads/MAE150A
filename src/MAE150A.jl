@@ -13,7 +13,7 @@ module MAE150A
   export initialize_environment,initialize_ns_solver,
         save_ns_solution,load_ns_solution, get_flowfield,
         compute_trajectory, field_along_trajectory,
-        convective_acceleration, ddt
+        convective_acceleration, mag, ddt, pressure
 
   function initialize_environment()
 
@@ -81,16 +81,17 @@ module MAE150A
   end
 
   """
-      get_flowfield(state,sys::NavierStokes)
+      get_flowfield(state,f,sys::NavierStokes)
 
-  Get the other flow field quantities: velocity, vorticity, and streamfunction
-  from the given state `state`, for Navier-Stokes system `sys`. Usage:
+  Get the other flow field quantities: velocity, vorticity, streamfunction,
+  and pressure coefficient (Cp), from the given state `state` and associated
+  constraint force vector `f`, for Navier-Stokes system `sys`. Usage:
 
   ```
-  u, ω, ψ = get_flowfield(state,sys)
+  u, ω, ψ, Cp = get_flowfield(state,f,sys)
   ```
   """
-  function get_flowfield(w::Nodes{Dual},sys)
+  function get_flowfield(w::Nodes{Dual},f::VectorData,sys)
     xg, yg = coordinates(w,sys.grid)
     ω = vorticity(w,sys)
     q = velocity(w,sys)
@@ -100,7 +101,33 @@ module MAE150A
     ψ = streamfunction(w,sys)
     ψ .+= sys.U∞[1]*transpose(yg)
 
-    return q, ω, ψ
+    Cp = pressure(w,f,sys)
+
+    return q, ω, ψ, Cp
+  end
+
+  function pressure(w::Nodes{Dual},f::VectorData,sys)
+
+    u = velocity(w,sys)
+    u.u .+= sys.U∞[1]
+    u.v .+= sys.U∞[2]
+
+    u_dual = Nodes(Dual,u)
+    ucrossw = Edges(Primal,u)
+
+    grid_interpolate!(ucrossw.u,grid_interpolate!(u_dual, u.v) ∘ w)
+    grid_interpolate!(ucrossw.v,grid_interpolate!(u_dual,-u.u) ∘ w)
+    rhs = divergence(-cellsize(sys)*(sys.Hmat*f) + ucrossw)
+
+    umag = mag(u)
+
+    Lc = plan_laplacian(rhs,with_inverse=true)
+    
+    fact = 2/(sys.U∞[1]^2+sys.U∞[2]^2)
+    Cp = fact*(Lc\rhs - 0.5*(umag∘umag))
+
+    return Cp
+
   end
 
   """
@@ -242,6 +269,33 @@ module MAE150A
    return ugradu
 
  end
+
+ # Vector data magnitude (on cell centers)
+ """
+    mag(u::Edges{Primal/Dual}) -> Nodes{Primal/Dual}
+
+ Calculate the magnitude of vector grid data `u`, placing the result on
+ the cell centers.
+ """
+ function mag(u::Edges{C}) where {C <: ViscousFlow.Fields.CellType}
+
+   usq = u∘u
+   usq_nodes = Nodes(C,u)
+   umag = Nodes(C,u)
+
+   grid_interpolate!(usq_nodes,usq.u)
+   umag .= usq_nodes
+
+   grid_interpolate!(usq_nodes,usq.v)
+   umag .+= usq_nodes
+
+   @. umag = sqrt(umag)
+
+   return umag
+ end
+
+
+
 
  """
     ddt(u::AbstractVector,Δt[,mydiff=:backward_diff])
