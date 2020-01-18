@@ -23,10 +23,13 @@ module MAE150A
 
     # Ensure that LaTeX stuff is handled
     rcParams["mathtext.fontset"] = "cm"
+    #=
+    This does not always work well...
     if typeof(Plots.PyPlot.matplotlib.checkdep_dvipng()) != Nothing
       # only use matplotlib tex if dvipng is present
       rcParams["text.usetex"] = true
     end
+    =#
 
     return nothing
 
