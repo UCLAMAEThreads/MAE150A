@@ -22,7 +22,11 @@ module MAE150A
     rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
 
     # Ensure that LaTeX stuff is handled
-    rcParams["text.usetex"] = true
+    rcParams["mathtext.fontset"] = "cm"
+    if typeof(Plots.PyPlot.matplotlib.checkdep_dvipng()) != Nothing
+      # only use matplotlib tex if dvipng is present
+      rcParams["text.usetex"] = true
+    end
 
     return nothing
 
@@ -122,7 +126,7 @@ module MAE150A
     umag = mag(u)
 
     Lc = plan_laplacian(rhs,with_inverse=true)
-    
+
     fact = 2/(sys.U∞[1]^2+sys.U∞[2]^2)
     Cp = fact*(Lc\rhs - 0.5*(umag∘umag))
 
