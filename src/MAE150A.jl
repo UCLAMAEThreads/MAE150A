@@ -13,7 +13,8 @@ module MAE150A
   export initialize_environment,initialize_ns_solver,
         save_ns_solution,load_ns_solution, get_flowfield,
         compute_trajectory, field_along_trajectory,
-        convective_acceleration, mag, ddt, pressure
+        convective_acceleration, mag, ddt, pressure,
+        OseenVortex
 
   function initialize_environment()
 
@@ -136,6 +137,54 @@ module MAE150A
     return Cp
 
   end
+
+  function pressure(w::Nodes{Dual},g::PhysicalGrid; U∞::Tuple=(0,0))
+
+    L = plan_laplacian(w,with_inverse=true)
+
+    u = -curl(L\w)
+    u.u .+= U∞[1]
+    u.v .+= U∞[2]
+
+    u_dual = Nodes(Dual,u)
+    ucrossw = Edges(Primal,u)
+
+    grid_interpolate!(ucrossw.u,grid_interpolate!(u_dual, u.v) ∘ w)
+    grid_interpolate!(ucrossw.v,grid_interpolate!(u_dual,-u.u) ∘ w)
+    rhs = divergence(ucrossw)
+
+    umag = mag(u)
+
+    Lc = plan_laplacian(rhs,with_inverse=true)
+
+    return Lc\rhs - 0.5*(umag∘umag)
+
+  end
+
+# Vortex construction
+
+  """
+      OseenVortex(x0,y0,Γ,σ)
+
+  Construct a Gaussian-shaped vorticity distribution at location `x0`, `y0`, with
+    strength `Γ` and radius `σ`. This is used as in the following example:
+  ```
+  w = OseenVortex(0,1,1,0.1)
+  ```
+  constructs a vortex at (0,1) with strength 1 and radius 0.1. Then we can evaluate
+  the vorticity field of this vortex at some location (x,y) as follows:
+  ```
+  w(x,y)
+  ```
+  """
+  struct OseenVortex
+    x0 :: Real
+    y0 :: Real
+    Γ :: Real
+    σ :: Real
+  end
+
+  (v::OseenVortex)(x,y) = v.Γ/(π*v.σ^2)*exp(-((x-v.x0)^2+(y-v.y0)^2)/v.σ^2)
 
   """
       load_ns_solution(filen::String)
