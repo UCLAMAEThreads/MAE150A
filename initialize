@@ -1,0 +1,4 @@
+#
+/bin/bash
+
+julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate; using MAE150A'
