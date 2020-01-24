@@ -6,7 +6,7 @@ To get started with this package in a jupyter environment, please do the followi
 
 1. Open a terminal from jupyter.
 
-2. In the terminal, navigate to the directory in which jupyter is based.
+2. In the terminal, navigate to the directory in which jupyter is based. For example, on jupyter.idre.ucla.edu, you would type "cd work" to move to the "work" directory.
 
 3. Type "git clone https://github.com/jdeldre/MAE150A.git". This will create a new directory called "MAE150A"
 
