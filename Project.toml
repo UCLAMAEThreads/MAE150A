@@ -14,3 +14,7 @@ PotentialFlow = "73af2aaf-3f58-5b29-82a9-435ecf827f5b"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 ViscousFlow = "103da179-b3e4-57c1-99a4-586354eb2c5a"
+
+[compat]
+PotentialFlow = "0.1.7"
+ViscousFlow = "0.2.0"
