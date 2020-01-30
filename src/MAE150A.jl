@@ -7,7 +7,7 @@ module MAE150A
   @reexport using Plots
   @reexport using OrdinaryDiffEq
   @reexport using LaTeXStrings
-  
+
   using Interpolations
   using JLD
   #using PyPlot
@@ -109,7 +109,7 @@ module MAE150A
 
     q.u .+= sys.U∞[1]
     q.v .+= sys.U∞[2]
-    ψ = streamfunction(w,sys)
+    ψ = ViscousFlow.streamfunction(w,sys)
     ψ .+= sys.U∞[1]*transpose(yg)
 
     Cp = pressure(w,f,sys)
