@@ -38,7 +38,7 @@ module MAE150A
     end
     =#
 
-    default(markerstrokealpha = 0, legend = false, ratio = 1,
+    default(markerstrokealpha = 0, legend = false,
         dpi = 100, size = (400, 300), grid = false)
 
     return nothing
