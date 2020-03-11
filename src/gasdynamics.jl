@@ -383,10 +383,12 @@ SoundSpeed(u::Velocity,M::MachNumber) = SoundSpeed(u/M)
 # mass flow rate
 MassFlowRate(ρ::Density,u::Velocity,A::Area) = MassFlowRate(ρ*u*A)
 
-function T0OverT(M::MachNumber;gas::PerfectGas=DefaultPerfectGas)
+function T0OverT(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     γ = SpecificHeatRatio(gas)
     return TemperatureRatio(1+0.5*(γ-1)*M^2)
 end
+
+T0OverT(M::MachNumber;gas::PerfectGas=DefaultPerfectGas) = T0OverT(M,Isentropic,gas=gas)
 
 ######## ISENTROPIC RELATIONS #########
 
@@ -399,9 +401,16 @@ function TemperatureRatio(ρratio::DensityRatio,::Type{Isentropic};gas::PerfectG
     γ = SpecificHeatRatio(gas)
     TemperatureRatio(ρratio^(γ-1))
 end
+
 function PressureRatio(Tratio::TemperatureRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     γ = SpecificHeatRatio(gas)
     PressureRatio(Tratio^(γ/(γ-1)))
+end
+
+function P0OverP(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
+    γ = SpecificHeatRatio(gas)
+    Tratio = T0OverT(M,Isentropic,gas=gas)
+    PressureRatio(Tratio,Isentropic,gas=gas)
 end
 
 function DensityRatio(Tratio::TemperatureRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
@@ -409,74 +418,92 @@ function DensityRatio(Tratio::TemperatureRatio,::Type{Isentropic};gas::PerfectGa
     DensityRatio(Tratio^(1/(γ-1)))
 end
 
-# Temperature relations
-function StagnationTemperature(T::Temperature,M::MachNumber;gas::PerfectGas=DefaultPerfectGas)
-    StagnationTemperature(T*T0OverT(M,gas=gas))
+function ρ0Overρ(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
+    γ = SpecificHeatRatio(gas)
+    Tratio = T0OverT(M,Isentropic,gas=gas)
+    DensityRatio(Tratio,Isentropic,gas=gas)
 end
 
-Temperature(T0::StagnationTemperature,M::MachNumber;gas::PerfectGas=DefaultPerfectGas) = Temperature(T0/T0OverT(M,gas=gas))
+# Temperature relations
+function StagnationTemperature(T::Temperature,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
+    StagnationTemperature(T*T0OverT(M,Isentropic,gas=gas))
+end
 
-function MachNumber(T_over_T0::TemperatureRatio;gas::PerfectGas=DefaultPerfectGas)
+StagnationTemperature(T::Temperature,M::MachNumber;gas::PerfectGas=DefaultPerfectGas) = StagnationTemperature(T,M,Isentropic,gas=gas)
+
+Temperature(T0::StagnationTemperature,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas) = Temperature(T0/T0OverT(M,gas=gas))
+
+Temperature(T0::StagnationTemperature,M::MachNumber;gas::PerfectGas=DefaultPerfectGas) = Temperature(T0,M,Isentropic,gas=gas)
+
+function MachNumber(T_over_T0::TemperatureRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     value(T_over_T0) <= 1.0 || error("T/T0 must be 1 or smaller")
     γ = SpecificHeatRatio(gas)
     M2 = ((1.0/T_over_T0)-1)*2/(γ-1)
     MachNumber(sqrt(M2))
 end
 
-MachNumber(T::Temperature,T0::StagnationTemperature;gas::PerfectGas=DefaultPerfectGas) = MachNumber(TemperatureRatio(T/T0),gas=gas)
+MachNumber(T_over_T0::TemperatureRatio;gas::PerfectGas=DefaultPerfectGas) = MachNumber(T_over_T0,Isentropic,gas=gas)
+
+MachNumber(T::Temperature,T0::StagnationTemperature,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas) = MachNumber(TemperatureRatio(T/T0),gas=gas)
+
+MachNumber(T::Temperature,T0::StagnationTemperature;gas::PerfectGas=DefaultPerfectGas) = MachNumber(T,T0,Isentropic,gas=gas)
 
 # Pressure relations
-function StagnationPressure(p::Pressure,M::MachNumber;gas::PerfectGas=DefaultPerfectGas)
+function StagnationPressure(p::Pressure,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     StagnationPressure(p*PressureRatio(T0OverT(M,gas=gas),Isentropic))
 end
-function Pressure(p0::StagnationPressure,M::MachNumber;gas::PerfectGas=DefaultPerfectGas)
+function Pressure(p0::StagnationPressure,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     Pressure(p0/PressureRatio(T0OverT(M,gas=gas),Isentropic))
 end
 
-function MachNumber(p_over_p0::PressureRatio;gas::PerfectGas=DefaultPerfectGas)
+function MachNumber(p_over_p0::PressureRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     value(p_over_p0) <= 1.0 || error("p/p0 must be 1 or smaller")
     γ = SpecificHeatRatio(gas)
     MachNumber(TemperatureRatio(p_over_p0,Isentropic,gas=gas))
 end
 
-MachNumber(p::Pressure,p0::StagnationPressure;gas::PerfectGas=DefaultPerfectGas) = MachNumber(PressureRatio(p/p0),gas=gas)
+MachNumber(p::Pressure,p0::StagnationPressure,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas) = MachNumber(PressureRatio(p/p0),gas=gas)
 
 # Density relations
-function StagnationDensity(ρ::Density,M::MachNumber;gas::PerfectGas=DefaultPerfectGas)
+function StagnationDensity(ρ::Density,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     StagnationDensity(ρ*DensityRatio(T0OverT(M,gas=gas),Isentropic))
 end
-function Density(ρ0::StagnationDensity,M::MachNumber;gas::PerfectGas=DefaultPerfectGas)
+function Density(ρ0::StagnationDensity,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     Density(ρ0/DensityRatio(T0OverT(M,gas=gas),Isentropic))
 end
 
-function MachNumber(ρ_over_ρ0::DensityRatio;gas::PerfectGas=DefaultPerfectGas)
+function MachNumber(ρ_over_ρ0::DensityRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     value(ρ_over_ρ0) <= 1.0 || error("ρ/ρ0 must be 1 or smaller")
     γ = SpecificHeatRatio(gas)
     MachNumber(TemperatureRatio(ρ_over_ρ0,Isentropic,gas=gas))
 end
 
-MachNumber(ρ::Density,ρ0::StagnationDensity;gas::PerfectGas=DefaultPerfectGas) = MachNumber(DensityRatio(ρ/ρ0),gas=gas)
+MachNumber(ρ::Density,ρ0::StagnationDensity,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas) = MachNumber(DensityRatio(ρ/ρ0),gas=gas)
 
 # Area-Mach number relation
-function AOverAStar(M::MachNumber;gas::PerfectGas=DefaultPerfectGas)
+function AOverAStar(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     γ = SpecificHeatRatio(gas)
     return AreaRatio(1/M*(2/(γ+1)*(T0OverT(M,gas=gas)))^(0.5*(γ+1)/(γ-1)))
 end
+AOverAStar(M::MachNumber;gas::PerfectGas=DefaultPerfectGas) = AOverAStar(M,Isentropic,gas=gas)
 
-function AStar(A::Area,M::MachNumber;gas::PerfectGas=DefaultPerfectGas)
+function AStar(A::Area,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     return Area(A/AOverAStar(M,gas=gas))
 end
+AStar(A::Area,M::MachNumber;gas::PerfectGas=DefaultPerfectGas) = AStar(A,M,Isentropic,gas=gas)
 
-function MachNumber(A_over_Astar::AreaRatio;gas::PerfectGas=DefaultPerfectGas)
+function MachNumber(A_over_Astar::AreaRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     value(A_over_Astar) >= 1.0 || error("A/A* must be 1 or larger")
     Msub = find_zero(x -> AOverAStar(MachNumber(x))-A_over_Astar,(0,1),order=16)
     Msup = find_zero(x -> AOverAStar(MachNumber(x))-A_over_Astar,(1,Inf),order=16)
     return MachNumber(Msub), MachNumber(Msup)
 end
+MachNumber(A_over_Astar::AreaRatio;gas::PerfectGas=DefaultPerfectGas) = MachNumber(A_over_Astar,Isentropic,gas=gas)
 
-function MachNumber(M1::MachNumber,A1::Area,A2::Area;gas::PerfectGas=DefaultPerfectGas)
+function MachNumber(M1::MachNumber,A1::Area,A2::Area,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     M2sub, M2sup = MachNumber(AreaRatio(A2/AStar(A1,M1,gas=gas)),gas=gas)
 end
+MachNumber(M1::MachNumber,A1::Area,A2::Area;gas::PerfectGas=DefaultPerfectGas) = MachNumber(M1,A2,A2,Isentropic,gas=gas)
 
 ###### NORMAL SHOCK RELATIONS #######
 
