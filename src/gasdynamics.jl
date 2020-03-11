@@ -6,6 +6,12 @@ import Base:+,*,-,/,^
 
 using Roots
 
+#=
+Note: to add a new quantity, you define its units here, calling its units, for
+example, MyQtyUnits. Then, add MyQty below to the list of strings in
+Thermodynamic States section below.
+=#
+
 ######## UNITS #########
 abstract type ThermodynamicUnits end
 abstract type SI <: ThermodynamicUnits end
@@ -62,8 +68,11 @@ default_unit(::Type{T}) where {T<:DensityUnits} = KGPerCuM
 
 # energies
 abstract type JPerKG <: SI end
-SpecificEnergyUnits = Union{JPerKG}
+abstract type KJPerKG <: SIOtherUnits end
+SpecificEnergyUnits = Union{JPerKG,KJPerKG}
 default_unit(::Type{SpecificEnergyUnits}) = JPerKG
+convert_unit(::Type{JPerKG},::Type{KJPerKG},val) = val*1e3
+convert_unit(::Type{KJPerKG},::Type{JPerKG},val) = val*1e-3
 
 # enthalpy
 EnthalpyUnits = SpecificEnergyUnits
@@ -72,6 +81,10 @@ default_unit(::Type{T}) where {T<:EnthalpyUnits} = default_unit(SpecificEnergyUn
 # internal energy
 InternalEnergyUnits = SpecificEnergyUnits
 default_unit(::Type{T}) where {T<:InternalEnergyUnits} = default_unit(SpecificEnergyUnits)
+
+# heat flux
+HeatFluxUnits = SpecificEnergyUnits
+default_unit(::Type{T}) where {T<:HeatFluxUnits} = default_unit(SpecificEnergyUnits)
 
 # velocities
 abstract type MPerSec <: SI end
@@ -97,11 +110,14 @@ default_unit(::Type{T}) where {T<:MachNumberUnits} = Dimensionless
 
 # specific heats and gas constant
 abstract type JPerKGK <: SI end
-GasConstantUnits = Union{JPerKGK}
+abstract type KJPerKGK <: SIOtherUnits end
+GasConstantUnits = Union{JPerKGK,KJPerKGK}
 default_unit(::Type{T}) where {T<:GasConstantUnits} = JPerKGK
+convert_unit(::Type{JPerKGK},::Type{KJPerKGK},val) = val*1e3
+convert_unit(::Type{KJPerKGK},::Type{JPerKGK},val) = val*1e-3
 
 # entropy
-EntropyUnits = Union{JPerKGK}
+EntropyUnits = GasConstantUnits
 default_unit(::Type{T}) where {T<:EntropyUnits} = JPerKGK
 
 # mass flow rate
@@ -128,6 +144,7 @@ default_unit(::Type{T}) where {T<:FrictionFactorUnits} = Dimensionless
 # f*L/D
 FLOverDUnits = Dimensionless
 default_unit(::Type{T}) where {T<:FLOverDUnits} = Dimensionless
+
 
 
 ###### THERMODYNAMIC PROCESSES #######
@@ -268,7 +285,7 @@ end
 
 # other thermodynamic state quantities
 for qty in ("Area","MachNumber","Entropy","MassFlowRate","Velocity",
-            "Length","Diameter","FrictionFactor","FLOverD")
+            "Length","Diameter","FrictionFactor","FLOverD","HeatFlux")
 
     qtysym = Symbol(qty)
     unitsym = Symbol(qty,"Units")
@@ -504,7 +521,7 @@ function FLStarOverD(M::MachNumber,::Type{FannoFlow};gas::PerfectGas=DefaultPerf
   return FLOverD((1-M^2)/(γ*M^2) + (γ+1)/(2γ)*log((γ+1)*M^2/(2+(γ-1)*M^2)))
 end
 
-function MachNumber(fL_over_D::FLOverD;gas::PerfectGas=DefaultPerfectGas)
+function MachNumber(fL_over_D::FLOverD,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
     Msub = find_zero(x -> FLStarOverD(MachNumber(x),FannoFlow,gas=gas)-fL_over_D,(0.001,1),order=16)
     max_fLD = FLStarOverD(MachNumber(1e10),FannoFlow,gas=gas)
 
@@ -537,6 +554,57 @@ end
 function P0OverP0Star(M::MachNumber,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
   γ = SpecificHeatRatio(gas)
   return StagnationPressureRatio(1/M*((2+(γ-1)*M^2)/(γ+1))^((γ+1)/(2(γ-1))))
+end
+
+####### RAYLEIGH FLOW ########
+
+HeatFlux(h01::StagnationEnthalpy,h02::StagnationEnthalpy) = HeatFlux(h02-h01)
+
+function HeatFlux(T01::StagnationTemperature,T02::StagnationTemperature;gas::PerfectGas=DefaultPerfectGas)
+  h01 = StagnationEnthalpy(T01;gas=gas)
+  h02 = StagnationEnthalpy(T02;gas=gas)
+  return HeatFlux(h01,h02)
+end
+
+function T0OverT0Star(M::MachNumber,::Type{RayleighFlow};gas::PerfectGas=DefaultPerfectGas)
+  γ = SpecificHeatRatio(gas)
+  return TemperatureRatio(((γ+1)*M^2*(2+(γ-1)*M^2))/(1+γ*M^2)^2)
+end
+
+function TOverTStar(M::MachNumber,::Type{RayleighFlow};gas::PerfectGas=DefaultPerfectGas)
+  γ = SpecificHeatRatio(gas)
+  return TemperatureRatio(((γ+1)^2*M^2)/(1+γ*M^2)^2)
+end
+
+function MachNumber(T0_over_T0star::TemperatureRatio,::Type{RayleighFlow};gas::PerfectGas=DefaultPerfectGas)
+    Msub = find_zero(x -> T0OverT0Star(MachNumber(x),RayleighFlow,gas=gas)-T0_over_T0star,(0.001,1),order=16)
+    max_T0ratio = T0OverT0Star(MachNumber(1e10),RayleighFlow,gas=gas)
+
+    if value(T0_over_T0star) > value(max_T0ratio)
+        return MachNumber(Msub)
+    else
+        Msup = find_zero(x -> T0OverT0Star(MachNumber(x),RayleighFlow,gas=gas)-T0_over_T0star,(1,1e10),order=16)
+        return MachNumber(Msub), MachNumber(Msup)
+    end
+end
+
+function POverPStar(M::MachNumber,::Type{RayleighFlow};gas::PerfectGas=DefaultPerfectGas)
+  γ = SpecificHeatRatio(gas)
+  return PressureRatio((γ+1)/(1+γ*M^2))
+end
+
+function VOverVStar(M::MachNumber,::Type{RayleighFlow};gas::PerfectGas=DefaultPerfectGas)
+  γ = SpecificHeatRatio(gas)
+  return VelocityRatio(((γ+1)*M^2)/(1+γ*M^2))
+end
+
+function ρOverρStar(M::MachNumber,::Type{RayleighFlow};gas::PerfectGas=DefaultPerfectGas)
+  return DensityRatio(1/VOverVStar(M,RayleighFlow,gas=gas))
+end
+
+function P0OverP0Star(M::MachNumber,::Type{RayleighFlow};gas::PerfectGas=DefaultPerfectGas)
+  γ = SpecificHeatRatio(gas)
+  return PressureRatio((γ+1)/(1+γ*M^2)*((2+(γ-1)*M^2)/(γ+1))^(γ/(γ-1)))
 end
 
 nothing
