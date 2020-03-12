@@ -536,8 +536,8 @@ function StagnationPressureRatio(M1::MachNumber,::Type{NormalShock};gas::Perfect
     value(M1) >= 1.0 || error("M1 must be at least 1")
     M2 = MachNumber(M1,NormalShock,gas=gas)
     pratio = PressureRatio(M1,NormalShock,gas=gas)
-    p01_unit = StagnationPressure(Pressure(1),M1,gas=gas)
-    p02_unit = StagnationPressure(Pressure(1),M2,gas=gas)
+    p01_unit = StagnationPressure(Pressure(1),M1,Isentropic,gas=gas)
+    p02_unit = StagnationPressure(Pressure(1),M2,Isentropic,gas=gas)
     return StagnationPressureRatio(pratio*p02_unit/p01_unit)
 end
 
@@ -614,10 +614,12 @@ function TOverTStar(M::MachNumber,::Type{RayleighFlow};gas::PerfectGas=DefaultPe
 end
 
 function MachNumber(T0_over_T0star::TemperatureRatio,::Type{RayleighFlow};gas::PerfectGas=DefaultPerfectGas)
+   value(T0_over_T0star) <= 1.0 || error("T0/T0* must be 1 or smaller")
+
     Msub = find_zero(x -> T0OverT0Star(MachNumber(x),RayleighFlow,gas=gas)-T0_over_T0star,(0.001,1),order=16)
     max_T0ratio = T0OverT0Star(MachNumber(1e10),RayleighFlow,gas=gas)
 
-    if value(T0_over_T0star) > value(max_T0ratio)
+    if value(T0_over_T0star) < value(max_T0ratio)
         return MachNumber(Msub)
     else
         Msup = find_zero(x -> T0OverT0Star(MachNumber(x),RayleighFlow,gas=gas)-T0_over_T0star,(1,1e10),order=16)
