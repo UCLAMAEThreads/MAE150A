@@ -450,10 +450,10 @@ MachNumber(T::Temperature,T0::StagnationTemperature;gas::PerfectGas=DefaultPerfe
 
 # Pressure relations
 function StagnationPressure(p::Pressure,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
-    StagnationPressure(p*PressureRatio(T0OverT(M,gas=gas),Isentropic))
+    StagnationPressure(p*PressureRatio(T0OverT(M,gas=gas),Isentropic,gas=gas))
 end
 function Pressure(p0::StagnationPressure,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
-    Pressure(p0/PressureRatio(T0OverT(M,gas=gas),Isentropic))
+    Pressure(p0/PressureRatio(T0OverT(M,gas=gas),Isentropic,gas=gas))
 end
 
 function MachNumber(p_over_p0::PressureRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
@@ -466,10 +466,10 @@ MachNumber(p::Pressure,p0::StagnationPressure,::Type{Isentropic};gas::PerfectGas
 
 # Density relations
 function StagnationDensity(ρ::Density,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
-    StagnationDensity(ρ*DensityRatio(T0OverT(M,gas=gas),Isentropic))
+    StagnationDensity(ρ*DensityRatio(T0OverT(M,gas=gas),Isentropic,gas=gas))
 end
 function Density(ρ0::StagnationDensity,M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
-    Density(ρ0/DensityRatio(T0OverT(M,gas=gas),Isentropic))
+    Density(ρ0/DensityRatio(T0OverT(M,gas=gas),Isentropic,gas=gas))
 end
 
 function MachNumber(ρ_over_ρ0::DensityRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
