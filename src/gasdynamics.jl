@@ -249,7 +249,7 @@ const Air = PerfectGas()
 const He = PerfectGas(γ=SpecificHeatRatio(5/3),R=GasConstant(2077))
 const O2 = PerfectGas(γ=SpecificHeatRatio(1.4),R=GasConstant(260))
 const CO2 = PerfectGas(γ=SpecificHeatRatio(1.3),R=GasConstant(189))
-const H2 = PerfectGas(γ=SpecificHeatRatio(1.40),R=GasConstant(4124))
+const H2 = PerfectGas(γ=SpecificHeatRatio(1.405),R=GasConstant(4126))
 const N2 = PerfectGas(γ=SpecificHeatRatio(1.40),R=GasConstant(297))
 
 ######## THERMODYNAMIC STATES #######
@@ -588,9 +588,27 @@ function TOverTStar(M::MachNumber,::Type{FannoFlow};gas::PerfectGas=DefaultPerfe
   return TemperatureRatio((γ+1)/(2+(γ-1)*M^2))
 end
 
+function MachNumber(T_over_Tstar::TemperatureRatio,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
+    M = find_zero(x -> TOverTStar(MachNumber(x),FannoFlow,gas=gas)-T_over_Tstar,(1e-10,1e10),order=16)
+    return MachNumber(M)
+
+end
+
 function P0OverP0Star(M::MachNumber,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
   γ = SpecificHeatRatio(gas)
   return StagnationPressureRatio(1/M*((2+(γ-1)*M^2)/(γ+1))^((γ+1)/(2(γ-1))))
+end
+
+function MachNumber(p0_over_p0star::StagnationPressureRatio,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
+    Msub = find_zero(x -> P0OverP0Star(MachNumber(x),FannoFlow,gas=gas)-p0_over_p0star,(0.001,1),order=16)
+    max_p0_over_p0star = P0OverP0Star(MachNumber(1e10),FannoFlow,gas=gas)
+
+    if value(p0_over_p0star) > value(max_p0_over_p0star)
+        return MachNumber(Msub)
+    else
+        Msup = find_zero(x -> P0OverP0Star(MachNumber(x),FannoFlow,gas=gas)-p0_over_p0star,(1,1e10),order=16)
+        return MachNumber(Msub), MachNumber(Msup)
+    end
 end
 
 ####### RAYLEIGH FLOW ########
