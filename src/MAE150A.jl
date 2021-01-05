@@ -15,7 +15,7 @@ module MAE150A
   using PyCall
   using Dierckx
   using Roots
-  #using PyPlot
+  using PyPlot
 
   export initialize_environment,initialize_ns_solver,
         save_ns_solution,load_ns_solution, get_flowfield,
@@ -68,7 +68,7 @@ module MAE150A
   function open_notebooks()
     initialize_environment()
     Base.eval(Main, Meta.parse("import IJulia"))
-    path = joinpath(repo_directory,"notebook/Index.ipynb")
+    path = joinpath(repo_directory,"notebook")
     IJulia.notebook(;dir=path)
   end
 
