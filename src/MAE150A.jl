@@ -1,6 +1,6 @@
 module MAE150A
 
-  using Weave, Pkg, InteractiveUtils, IJulia
+  using Pkg, InteractiveUtils, IJulia
 
   using Reexport
 
