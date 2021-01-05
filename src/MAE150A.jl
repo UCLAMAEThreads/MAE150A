@@ -26,7 +26,7 @@ module MAE150A
         add_arrow!,add_arrows!,
         falknerskan
 
-  
+
   repo_directory = joinpath(@__DIR__,"..")
   cssfile = joinpath(@__DIR__, "..", "templates", "skeleton_css.css")
   latexfile = joinpath(@__DIR__, "..", "templates", "julia_tex.tpl")
@@ -626,7 +626,7 @@ end
  Calculate the magnitude of vector grid data `u`, placing the result on
  the cell centers.
  """
- function mag(u::Edges{C}) where {C <: ViscousFlow.Fields.CellType}
+ function mag(u::Edges{C}) where {C <: ViscousFlow.CartesianGrids.CellType}
 
    usq = u∘u
    usq_nodes = Nodes(C,u)
