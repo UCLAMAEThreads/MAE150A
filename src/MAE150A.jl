@@ -97,18 +97,17 @@ module MAE150A
   function tutorial_footer(folder=nothing, file=nothing; remove_homedir=true)
       display("text/markdown", """
       ## Appendix
-       This tutorial is part of the SciMLTutorials.jl repository, found at: <https://github.com/SciML/SciMLTutorials.jl>.
-       For more information on doing scientific machine learning (SciML) with open source software, check out <https://sciml.ai/>.
+       This lesson is part of the MAE150.jl repository, found at: <https://github.com/jdeldre/MAE150A.jl>.
       """)
-      if folder !== nothing && file !== nothing
-          display("text/markdown", """
-          To locally run this tutorial, do the following commands:
-          ```
-          using SciMLTutorials
-          SciMLTutorials.weave_file("$folder","$file")
-          ```
-          """)
-      end
+      #if folder !== nothing && file !== nothing
+      #    display("text/markdown", """
+      #    To locally run this tutorial, do the following commands:
+      #    ```
+      #    using SciMLTutorials
+      #    SciMLTutorials.weave_file("$folder","$file")
+      #    ```
+      #    """)
+      #end
       display("text/markdown", "Computer Information:")
       vinfo = sprint(InteractiveUtils.versioninfo)
       display("text/markdown",  """

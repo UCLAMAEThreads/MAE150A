@@ -4,8 +4,8 @@ authors = ["Jeff Eldredge <jdeldre@g.ucla.edu>"]
 version = "0.1.0"
 
 [deps]
-DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 Dierckx = "39dd38d3-220a-591b-8e3c-4c3a8c710a94"
+IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 JLD = "4138dd39-2aa7-5051-a626-17a0bb65d9c8"
@@ -24,5 +24,6 @@ ViscousFlow = "103da179-b3e4-57c1-99a4-586354eb2c5a"
 Weave = "44d3d7a6-8a23-5bf8-98c5-b353f8df5ec9"
 
 [compat]
+IJulia = "1.23"
 PotentialFlow = "0.2.0"
 ViscousFlow = "0.3.6"
