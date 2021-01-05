@@ -4,14 +4,17 @@ This repository is designed for MAE 150A Intermediate Fluid Mechanics at UCLA.
 
 To get started with this package in a jupyter environment, please do the following:
 
-1. Open a terminal from jupyter.
+1. Download Julia to your computer from https://julialang.org
 
-2. In the terminal, navigate to the directory in which jupyter is based. For example, on jupyter.idre.ucla.edu, you would type "cd work" to move to the "work" directory.
+2. Start a Julia session.
 
-3. Type "git clone https://github.com/jdeldre/MAE150A.git". This will create a new directory called "MAE150A"
+3. Type `]` to enter the package management system. At this prompt, type `add IJulia`. This downloads `jupyter`, which is a browser-based computing environment. The 'ju' part stands for Julia; the 'py' part stands for Python.
 
-4. Now, type "cd MAE150A" to change to that directory.
+4. After that has completed, type `add https://github.com/jdeldre/MAE150A`. This will add
+the MAE 150A package to your own computer.
 
-5. Type "./initialize" on the command line. This might take a little while to run, since it downloads and precompiles some package dependencies.
+5. Now press backspace to return to the Julia prompt. At this prompt, type `using MAE150A`. This precompiles the package. Note: it will take several minutes.
 
-6. Go back to the jupyter window. You should now see "MAE150A" as a directory. (If not, something went wrong...) Go to that directory in jupyter, and start up any of the notebooks. You might want to start with "Index.ipynb", which acts as a list for the others.
+6. After you have waited patiently for that to finish, type `MAE150A.open_notebooks()`. This will put you into the main index of notebooks. You can open each one and run it.
+
+7. If you wish to use any of these notebooks as a starting point for your own modifications, please use the "Make a Copy..." option from the main jupyter menu.

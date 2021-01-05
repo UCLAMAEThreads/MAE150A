@@ -19,11 +19,11 @@ PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 ViscousFlow = "103da179-b3e4-57c1-99a4-586354eb2c5a"
-Weave = "44d3d7a6-8a23-5bf8-98c5-b353f8df5ec9"
 
 [compat]
 IJulia = "1.23"
 PotentialFlow = "0.2.0"
-ViscousFlow = "0.3.6"
+ViscousFlow = "0.4.0"
