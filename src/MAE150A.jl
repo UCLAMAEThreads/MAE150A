@@ -6,7 +6,7 @@ module MAE150A
 
   @reexport using ViscousFlow
   @reexport using PotentialFlow
-  @reexport using Plots
+  #@reexport using Plots
   @reexport using OrdinaryDiffEq
   @reexport using LaTeXStrings
 
@@ -84,10 +84,10 @@ module MAE150A
     # Set the back end for Plots
     #pyplot()
 
-    rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
+    #rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
 
     # Ensure that LaTeX stuff is handled
-    rcParams["mathtext.fontset"] = "cm"
+    #rcParams["mathtext.fontset"] = "cm"
 
     #=
     This does not always work well...
@@ -97,8 +97,8 @@ module MAE150A
     end
     =#
 
-    default(markerstrokealpha = 0, legend = false,
-        dpi = 100, size = (400, 300), grid = false)
+    #default(markerstrokealpha = 0, legend = false,
+    #    dpi = 100, size = (400, 300), grid = false)
 
     return nothing
 
@@ -111,6 +111,7 @@ module MAE150A
 
 Get the x,y coordinates of contour level `level` in plot `p`.
 """
+#=
 function get_segment_coords(ps::Plots.Plot{Plots.PyPlotBackend},level::Integer)
     contourset = get_series_handle(ps)
 
@@ -206,6 +207,7 @@ function add_arrows!(ps::Plots.Plot{Plots.PyPlotBackend},el;a...)
     end
     return ps
 end
+=#
 
 ####
 
