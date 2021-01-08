@@ -6,7 +6,6 @@ module MAE150A
 
   @reexport using ViscousFlow
   @reexport using PotentialFlow
-  #@reexport using Plots
   @reexport using OrdinaryDiffEq
   @reexport using LaTeXStrings
 
@@ -14,6 +13,7 @@ module MAE150A
 
   using Interpolations
   using JLD
+  using Requires
   @reexport using RecursiveArrayTools
   using Dierckx
   using Roots
@@ -34,6 +34,24 @@ module MAE150A
   repo_directory = joinpath(@__DIR__,"..")
 
   include("plot_recipes.jl")
+
+  function __init__()
+    @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
+      Plots.pyplot()
+      rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
+
+      # Ensure that LaTeX stuff is handled
+      rcParams["mathtext.fontset"] = "cm"
+
+      Plots.default(markerstrokealpha = 0, legend = false,
+        dpi = 100, size = (400, 300), grid = false)
+
+      include("arrows.jl")
+
+    end
+
+  end
+
 
   function tutorial_footer(; remove_homedir=true)
       display("text/markdown", """
@@ -72,142 +90,13 @@ module MAE150A
   end
 
   function open_notebooks()
-    #initialize_environment()
     Base.eval(Main, Meta.parse("import IJulia"))
     path = joinpath(repo_directory,"notebook")
     IJulia.notebook(;dir=path)
   end
 
 
-  function initialize_environment()
 
-    # Set the back end for Plots
-    #pyplot()
-
-    #rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
-
-    # Ensure that LaTeX stuff is handled
-    #rcParams["mathtext.fontset"] = "cm"
-
-    #=
-    This does not always work well...
-    if typeof(Plots.PyPlot.matplotlib.checkdep_dvipng()) != Nothing
-      # only use matplotlib tex if dvipng is present
-      rcParams["text.usetex"] = true
-    end
-    =#
-
-    default(markerstrokealpha = 0, legend = false,
-        dpi = 100, size = (400, 300), grid = false)
-
-    return nothing
-
-  end
-
-### Plotting arrows on streamlines
-
-"""
-    get_segment_coords(p::Plot,level::Integer)
-
-Get the x,y coordinates of contour level `level` in plot `p`.
-"""
-#=
-function get_segment_coords(ps::Plots.Plot{Plots.PyPlotBackend},level::Integer)
-    contourset = get_series_handle(ps)
-
-    if level > length(contourset."collections")
-      error("This contour level is not on the list.")
-    end
-    lc = get(contourset."collections",level-1)
-    seg_array_list = pycall(lc."get_segments",Array)
-
-    return seg_array_list
-end
-
-function get_series_handle(ps::Plots.Plot{Plots.PyPlotBackend})
-    sl = ps.series_list[1]
-    contourset = sl.plotattributes[:serieshandle][1]
-    return contourset
-end
-
-function arrowhead_coords(x,y,u,v,scale;open_angle::Float64=π/3)
-    R = [cos(0.5*open_angle) sin(0.5*open_angle);
-          -sin(0.5*open_angle) cos(0.5*open_angle)]
-
-    uvec = [u,v]/sqrt(u^2+v^2)
-
-    xhead = [x,y]
-    x1 = xhead .- scale*(R*uvec)
-    x2 = xhead .- scale*(R'*uvec)
-
-    xdata = [x1[1],x,x2[1]]
-    ydata = [x1[2],y,x2[2]]
-    return xdata, ydata
-end
-
-function arrowhead!(ps::Plots.Plot{Plots.PyPlotBackend},x,y,u,v,scale;open_angle::Float64=π/3)
-
-    xdata, ydata = arrowhead_coords(x,y,u,v,scale,open_angle=open_angle)
-
-    return plot!(ps,xdata,ydata,color=:black,linewidth=1)
-end
-
-function add_arrow!(ps::Plots.Plot{Plots.PyPlotBackend},seg::Array{Float64,2},elements;num_arrows=1)
-
-    if size(seg,1) <= 1
-        return ps
-    end
-
-    lastrow = size(seg,1)
-    if seg[end,:] == seg[end-1,:]
-        lastrow -= 1
-    end
-    firstrow = 1
-    if lastrow-firstrow >= 2
-      firstrow += 1
-    elseif lastrow-firstrow <= 0
-      return ps
-    end
-    deg = (lastrow-firstrow) < 3 ? 1 : 3
-
-    spl = ParametricSpline(seg[firstrow:lastrow,:]',k=deg)
-
-    interv = 1/(num_arrows+1)
-    for f in interv:interv:1-interv
-        xhead, yhead = spl(f)
-        w = induce_velocity(xhead+im*yhead,elements,0)
-        arrowhead!(ps,xhead,yhead,real(w),imag(w),0.1)
-    end
-    return ps
-end
-
-"""
-    add_arrow!(p::Plot,level::Integer,elements,[num_arrows=2])
-
-Add arrow(s) on a given contour level of the plot `p`. The `elements` are the potential flow element(s)
-that generate the flow. The number of arrows can be specified with the optional argument, but defaults
-to 2
-"""
-function add_arrow!(ps::Plots.Plot{Plots.PyPlotBackend},level::Integer,el;a...)
-    seg_list = get_segment_coords(ps,level)
-    if length(seg_list) > 0
-        for seg in seg_list
-            add_arrow!(ps,seg,el;a...)
-        end
-    else
-        return ps
-    end
-end
-
-function add_arrows!(ps::Plots.Plot{Plots.PyPlotBackend},el;a...)
-    contourset = get_series_handle(ps::Plots.Plot)
-    nlev = length(contourset."levels")
-    for lev in 1:2:nlev
-        add_arrow!(ps,lev,el;a...)
-    end
-    return ps
-end
-=#
 
 ####
 
