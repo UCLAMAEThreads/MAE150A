@@ -2,6 +2,10 @@
 
 This repository is designed for MAE 150A Intermediate Fluid Mechanics at UCLA.
 
+| Build Status |
+|:---:|
+| [![Build Status](https://github.com/jdeldre/MAE150A/workflows/CI/badge.svg)](https://github.com/jdeldre/MAE150A/actions) 
+
 To get started with jupyter, please do the following:
 
 1. Download Julia to your computer from https://julialang.org
