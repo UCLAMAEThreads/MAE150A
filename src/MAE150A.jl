@@ -39,9 +39,9 @@ module MAE150A
 
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
-      #ENV["PYTHON"] = ""
+      ENV["PYTHON"] = ""
       #Pkg.add("PyCall")
-      #Pkg.build("PyCall")
+      Pkg.build("PyCall")
       #
       #Pkg.add("PyPlot")
       using PyPlot: PyCall, LaTeXStrings
