@@ -42,6 +42,7 @@ module MAE150A
       ENV["PYTHON"] = ""
       Pkg.add("PyCall")
       Pkg.build("PyCall")
+      Pkg.add("PyPlot")
 
       Plots.pyplot()
       rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
