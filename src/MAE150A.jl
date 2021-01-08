@@ -72,7 +72,7 @@ module MAE150A
   end
 
   function open_notebooks()
-    initialize_environment()
+    #initialize_environment()
     Base.eval(Main, Meta.parse("import IJulia"))
     path = joinpath(repo_directory,"notebook")
     IJulia.notebook(;dir=path)
