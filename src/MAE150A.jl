@@ -7,7 +7,7 @@ module MAE150A
   @reexport using ViscousFlow
   @reexport using PotentialFlow
   @reexport using OrdinaryDiffEq
-  @reexport using LaTeXStrings
+  #@reexport using LaTeXStrings
 
   #import Plots: plot
 
@@ -39,10 +39,13 @@ module MAE150A
 
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
-      ENV["PYTHON"] = ""
-      Pkg.add("PyCall")
-      Pkg.build("PyCall")
-      Pkg.add("PyPlot")
+      #ENV["PYTHON"] = ""
+      #Pkg.add("PyCall")
+      #Pkg.build("PyCall")
+      #
+      #Pkg.add("PyPlot")
+      using PyPlot: PyCall, LaTeXStrings
+
 
       Plots.pyplot()
       rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
