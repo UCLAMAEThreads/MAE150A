@@ -1,3 +1,5 @@
+using Plots
+
 @testset "Trajectories" begin
 
     filename = "../notebook/NACA4415Re500.jld"
