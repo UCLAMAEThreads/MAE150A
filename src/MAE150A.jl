@@ -10,16 +10,20 @@ module MAE150A
   @reexport using OrdinaryDiffEq
   @reexport using LaTeXStrings
 
+  #import Plots: plot
+
   using Interpolations
   using JLD
-  using PyCall
+  @reexport using RecursiveArrayTools
   using Dierckx
   using Roots
-  using PyPlot
+  #using PyCall
+  #using PyPlot
 
   export initialize_environment,initialize_ns_solver,
         save_ns_solution,load_ns_solution, get_flowfield,
-        compute_trajectory, compute_trajectories, field_along_trajectory,
+        compute_trajectory, compute_trajectories,
+        field_along_trajectory, field_deriv_along_trajectory,
         convective_acceleration, mag, ddt, pressure,
         OseenVortex,
         complexgrid, vortex_patch,
@@ -28,6 +32,8 @@ module MAE150A
 
 
   repo_directory = joinpath(@__DIR__,"..")
+
+  include("plot_recipes.jl")
 
   function tutorial_footer(; remove_homedir=true)
       display("text/markdown", """
@@ -77,10 +83,12 @@ module MAE150A
 
     # Set the back end for Plots
     #pyplot()
+
     rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
 
     # Ensure that LaTeX stuff is handled
     rcParams["mathtext.fontset"] = "cm"
+
     #=
     This does not always work well...
     if typeof(Plots.PyPlot.matplotlib.checkdep_dvipng()) != Nothing
@@ -201,57 +209,63 @@ end
 
 ####
 
+
   """
-      initialize_ns_solver(Re::Real,U∞::Tuple,Δx::Real,xlim::Tuple,ylim::Tuple,body::Body[,Δt = Nothing])
+      save_ns_solution(filen::String,integrator)
 
-  Initialize the Navier-Stokes solver for a problem, with Reynolds number `Re`,
-  free stream velocity `U∞` on a grid with cell size `Δx` and extent `xlim`
-  and `ylim`, and body `body`. The time step size is set automatically, unless it
-  is passed in as an optional argument.
-
-  An example usage is
-
-  ```
-  solver,sys,state,f = initialize_ns_solver(Re,U∞,Δx,xlim,ylim,body)
-  ```
-
-  The output `solver` is the integrator to use for advancing the system, `sys`
-  contains operators and the NS system's metadata, `state` is an example instance of the
-  state vector, and `f` and example instance of the constraint force vector.
+  Save a state of the Navier-Stokes solution in a file with the provided
+  filename `filen`.
   """
-  function initialize_ns_solver(Re,U∞,Δx,xlim,ylim,body::Body;Δt = Nothing)
-      if Δt == Nothing
-          # Use CFL criteria to establish time step size
-          Δt = min(0.5*Δx,0.5*Δx^2*Re)
-      end
-      X = VectorData(body.x,body.y)
+  function save_ns_solution(filen,integrator)
 
-      sys = NavierStokes(Re,Δx,xlim,ylim,Δt,U∞ = U∞, X̃ = X, isstore = true)
-      state = Nodes(Dual,size(sys))
-      f = VectorData(X)
+      sys = integrator.p
+      save(filen,"Re",sys.Re,"freestream",sys.U∞,"Δt",sys.Δt,"grid",sys.grid,
+                "bodies",sys.bodies,"motions",sys.motions,
+                 "u",integrator.u,"t",integrator.t,"motiontype",motiontype(sys))
+      return nothing
 
-      plan_intfact(t,u) = Systems.plan_intfact(t,u,sys)
-      plan_constraints(u,t) = ViscousFlow.TimeMarching.plan_constraints(u,t,sys)
-      r₁(u,t) = ViscousFlow.TimeMarching.r₁(u,t,sys)
-      r₂(u,t) = ViscousFlow.TimeMarching.r₂(u,t,sys)
-
-      return IFHERK(state,f,sys.Δt,plan_intfact,plan_constraints,(r₁,r₂),rk=ViscousFlow.TimeMarching.RK31,isstored=true), sys, state, f
   end
 
+  motiontype(sys::NavierStokes{NX, NY, N, MT}) where {NX,NY,N,MT} = MT
 
   """
-      save_ns_solution(filen::String,state,f,sys,body)
+        load_ns_solution(filen::String)
 
-  Save a state vector `state` of the Navier-Stokes solution in a file with the provided
-  filenam `filen`. Also save the associated vector of Lagrange forces `f`, the
-  system solution metadata `sys`, and the body data `body`.
+    Given a JLD file with name `filen`, load in the Navier-Stokes solution data
+    stored in this file and set up various solution variables. An example:
+
+    ```
+    u, t, sys = load_ns_solution("myfile.jld")
+    ```
+
+    In this example, `u` is the flow state vector, `t` the time, `sys` is the NS system
+    metadata and operators.
   """
-  function save_ns_solution(filen,sys,body,state,f)
+  function load_ns_solution(filen)
 
-    save(filen,"Re",sys.Re,"U∞",sys.U∞,"Δt",sys.Δt,"grid",sys.grid,"body",body,"state",state,"f",f)
-    return nothing
+    d = load(filen)
 
+    bodies = d["bodies"]
+    motions = d["motions"]
+    g = d["grid"]
+    Δt = d["Δt"]
+    U∞ = d["freestream"]
+    Re = d["Re"]
+    u = d["u"]
+    t = d["t"]
+    motiontype = d["motiontype"]
+
+    sp = motiontype == ViscousFlow.StaticPoints ? true : false
+
+    xlim = round.(limits(g,1),digits=15)
+    ylim = round.(limits(g,2),digits=15)
+
+    sys = NavierStokes(Re,cellsize(g),xlim,ylim,Δt,bodies,motions,
+    freestream = U∞,static_points=sp)
+
+    return u, t, sys
   end
+
 
   """
       get_flowfield(state,f,sys::NavierStokes)
@@ -279,52 +293,6 @@ end
     return q, ω, ψ, Cp
   end
 
-  function pressure(w::Nodes{Dual},f::VectorData,sys)
-
-    u = velocity(w,sys)
-    u.u .+= sys.U∞[1]
-    u.v .+= sys.U∞[2]
-
-    u_dual = Nodes(Dual,u)
-    ucrossw = Edges(Primal,u)
-
-    grid_interpolate!(ucrossw.u,grid_interpolate!(u_dual, u.v) ∘ w)
-    grid_interpolate!(ucrossw.v,grid_interpolate!(u_dual,-u.u) ∘ w)
-    rhs = divergence(-cellsize(sys)*(sys.Hmat*f) + ucrossw)
-
-    umag = mag(u)
-
-    Lc = plan_laplacian(rhs,with_inverse=true)
-
-    fact = 2/(sys.U∞[1]^2+sys.U∞[2]^2)
-    Cp = fact*(Lc\rhs - 0.5*(umag∘umag))
-
-    return Cp
-
-  end
-
-  function pressure(w::Nodes{Dual},g::PhysicalGrid; U∞::Tuple=(0,0))
-
-    L = plan_laplacian(w,with_inverse=true)
-
-    u = -curl(L\w)
-    u.u .+= U∞[1]
-    u.v .+= U∞[2]
-
-    u_dual = Nodes(Dual,u)
-    ucrossw = Edges(Primal,u)
-
-    grid_interpolate!(ucrossw.u,grid_interpolate!(u_dual, u.v) ∘ w)
-    grid_interpolate!(ucrossw.v,grid_interpolate!(u_dual,-u.u) ∘ w)
-    rhs = divergence(ucrossw)
-
-    umag = mag(u)
-
-    Lc = plan_laplacian(rhs,with_inverse=true)
-
-    return Lc\rhs - 0.5*(umag∘umag)
-
-  end
 
 # Vortex construction
 
@@ -351,199 +319,7 @@ end
 
   (v::OseenVortex)(x,y) = v.Γ/(π*v.σ^2)*exp(-((x-v.x0)^2+(y-v.y0)^2)/v.σ^2)
 
-  """
-      load_ns_solution(filen::String)
 
-  Given a JLD file with name `filen`, load in the Navier-Stokes solution data
-  stored in this file and set up various solution variables. An example:
-
-  ```
-  state, f, sys, body = load_ns_solution("myfile.jld")
-  ```
-
-  In this example, `state` is the flow state vector, `f` the vector of Lagrange
-  forces on the body, `sys` is the NS system metadata and operators, and `body` the body data.
-  """
-  function load_ns_solution(filen)
-
-    d = load(filen)
-
-    body = d["body"]
-    g = d["grid"]
-    Δt = d["Δt"]
-    U∞ = d["U∞"]
-    Re = d["Re"]
-    state = d["state"]
-    f = d["f"]
-
-    X = VectorData(body.x,body.y)
-    sys = NavierStokes(Re,cellsize(g),limits(g,1),limits(g,2),Δt,
-                        U∞ = U∞, X̃ = X, isstore = true)
-
-    #q, ω, ψ = get_flowfield(w,sys)
-
-    #return q, ω, ψ, f, sys, body
-    return state, f, sys, body
-  end
-
-  # TRAJECTORY CALCULATION #
-
-  """
-     compute_trajectory(u,v,X₀::Vector,Tmax,Δt)
-
-  Calculate the trajectory of a tracer particle with initial location(s) `X₀`, which
-  can be specified as either a single vector `[x0,y0]` or a vector of vectors
-  for multiple tracer particles. The arguments
-  `u` and `v` are interpolated velocity field components, `Tmax` is the final
-  integration time, and `Δt` is the time step size. The output is the solution
-  structure for the `OrdinaryDiffEq` package (or, for multiple particles, a vector
-  of such solution structures).
-  """
-  function compute_trajectory(ufield::AbstractInterpolation{T,2},
-                              vfield::AbstractInterpolation{T,2},
-                              X₀::Vector{S},Tmax::Real,Δt::Real) where {T,S<:Real}
-
-    vfcn!(dR,R,p,t) = _vfcn_autonomous!(dR,R,p,t,ufield,vfield)
-
-    sol = _solve_trajectory(vfcn!,X₀,Tmax,Δt)
-    return sol
-
-  end
-
-  function compute_trajectory(ufield::AbstractInterpolation{T,2},vfield::AbstractInterpolation{T,2},
-     pts::Vector{Vector{S}},Tmax,Δt) where {T,S<:Real}
-
-    sol_array = ODESolution[]
-    for X₀ in pts
-      sol = compute_trajectory(ufield,vfield,X₀,Tmax,Δt)
-      push!(sol_array,sol)
-    end
-    return sol_array
-
-  end
-
-
-  """
-     compute_trajectory(vel::Edges,sys,X₀::Vector/Vector{Vector},Tmax,Δt)
-
-  Calculate the trajectory of a particle with initial location `X₀`. The argument
-  `vel` is edge-type grid data, `sys` is a Navier-Stokes type system, `Tmax` is the final
-  integration time, and `Δt` is the time step size. The output is the solution
-  structure for the `OrdinaryDiffEq` package.
-  """
-  compute_trajectory(u::Edges, sys::NavierStokes, X₀::Union{Vector{S},Vector{Vector{S}}},Tmax,Δt) where S <: Real =
-      compute_trajectory(interpolatable_field(u,sys.grid)...,X₀,Tmax,Δt)
-
-  """
-      compute_trajectory(elements,X₀::Vector,Tmax,Δt)
-
-  Calculate the trajectory of a particle with initial location `X₀`. The
-  argument `elements` is a potential flow `Element` type or group of `Element` types.
-  `Tmax` is the final integration time, and `Δt` is the time step size. The output is the solution
-  structure for the `OrdinaryDiffEq` package.
-  """
-  function compute_trajectory(elements, X₀::Vector{S}, Tmax, Δt) where S <: Real
-
-    function vfcn!(dR,R,p,t)
-      dR_complex = induce_velocity(R[1]+im*R[2], elements, t)
-      dR[1] = real(dR_complex)
-      dR[2] = imag(dR_complex)
-      return dR
-    end
-
-    sol = _solve_trajectory(vfcn!,X₀,Tmax,Δt)
-    return sol
-
-  end
-
-  function _solve_trajectory(vfcn!,u0,Tmax,Δt)
-    Path = ODEProblem(vfcn!,u0,(0.0,Tmax))
-    sol = solve(Path,ABM54(), dt = Δt, maxiters = 1e8, adaptive = false, dense = false)
-  end
-
-
- """
-     compute_trajectories(elements,tracer_start,Tmax,Δt)
-
- Calculate the trajectories of a set of tracer particles in a potential flow
- generated by the elements `elements`. The tracers' initial positions are
- provided as a vector of complex positions in `tracer_start`. The final time
- and time step are provided as `Tmax` and `Δt`. The output is a tuple of arrays
- of the x and y coordinates of the trajectories. Each column of these
- arrays corresponds to a single tracer history.
- """
- function compute_trajectories(elements, tracer_start::Vector{<:Number}, Tmax, Δt)
-
-     tracer_x = []
-     tracer_y = []
-     for z0 in tracer_start
-         sol = compute_trajectory(elements,[real(z0),imag(z0)],Tmax,Δt)
-         xy = transpose(hcat(sol.u...))
-         push!(tracer_x,xy[:,1])
-         push!(tracer_y,xy[:,2])
-     end
-     x = hcat(tracer_x...)
-     y = hcat(tracer_y...)
-
-     return x, y
-
- end
-
-
-
- function _vfcn_autonomous!(dR,R,p,t,u,v)
-   dR[1] = u(R[1],R[2])
-   dR[2] = v(R[1],R[2])
-
-  return dR
- end
-
- """
-    field_along_trajectory(f::GridData,sys::NavierStokes,traj::ODESolution)
-
- Evaluate field `f` (given as grid data) along the trajectory specified by `traj`.
- The output is the history of `f` along this trajectory. If `f` is a vector field,
- then the component histories are output as a tuple.
- """
- function field_along_trajectory(v::VectorGridData,sys::NavierStokes,traj::ODESolution)
-   vfield_x, vfield_y = interpolatable_field(v,sys.grid)
-
-   vx_traj = eltype(v)[]
-   vy_traj = eltype(v)[]
-   for x in traj.u
-     push!(vx_traj,vfield_x(x...))
-     push!(vy_traj,vfield_y(x...))
-   end
-
-   return vx_traj, vy_traj
- end
-
- function field_along_trajectory(s::ScalarGridData,sys::NavierStokes,traj::ODESolution)
-   sfield = interpolatable_field(s,sys.grid)
-
-   s_traj = eltype(sfield)[]
-   for x in traj.u
-     push!(s_traj,sfield(x...))
-   end
-
-   return s_traj
- end
-
- # Convective acceleration
- """
-    convective_acceleration(u,sys)
-
- Given grid velocity data `u` for Navier-Stokes system `sys`, calculation
- the convective acceleration field on the grid u.grad(u).
- """
- function convective_acceleration(u::VectorGridData,sys::NavierStokes)
-   ugradu = zero(u)
-   convective_derivative!(ugradu,u)
-   ugradu ./= cellsize(sys.grid)
-
-   return ugradu
-
- end
 
  # Vector data magnitude (on cell centers)
  """
@@ -579,28 +355,29 @@ end
  The default method is backward differencing, but this can be changed to
  `:forward_diff` or `:central_diff`.
  """
- function ddt(u::AbstractVector{T},Δt::Real;mydiff::Symbol=:forward_diff) where {T}
-    return eval(mydiff)(u)/Δt
+ function ddt(u::AbstractVector{T},t::AbstractVector{S};mydiff::Symbol=:forward_diff) where {T,S}
+    du = eval(mydiff)(u)./eval(mydiff)(t)
+    return du
  end
 
  # Some basic differencing routines
  function backward_diff(u::AbstractVector{T}) where {T}
      du = zero(u)
      du[2:end] .= u[2:end] .- u[1:end-1]
-     u[1] = u[2]
+     du[1] = du[2]
      return du
  end
  function forward_diff(u::AbstractVector{T}) where {T}
      du = zero(u)
      du[1:end-1] .= u[2:end] .- u[1:end-1]
-     u[end] = u[end-1]
+     du[end] = du[end-1]
      return du
  end
  function central_diff(u::AbstractVector{T}) where {T}
      du = zero(u)
      du[2:end-1] .= 0.5*u[3:end] .- 0.5*u[1:end-2]
-     u[1] = u[2]
-     u[end] = u[end-1]
+     du[1] = du[2]
+     du[end] = du[end-1]
      return du
  end
 
@@ -643,89 +420,9 @@ function vortex_patch(xcent,ycent,strength,radius,nring)
 end
 
 
-### Boundary layer routines
-
-function fsrhs!(du,u,p,t)
-  _, m, _ = p
-
-  du[1] = u[2]
-  du[2] = u[3]
-  du[3] = -0.5*(m+1)*u[1]*u[3] - m*(1-u[2]^2)
-end
-
-function fs_integrate(h0,p)
-  Vw, m, ηmax = p
-
-  f0 = -2Vw
-  g0 = 0.0
-  gL = 1.0
-
-  u0 = [f0;g0;h0]
-  ηspan = (0.0,ηmax)
+include("trajectories.jl")
+include("boundarylayers.jl")
 
 
-  prob = ODEProblem(fsrhs!,u0,ηspan,p)
-  sol = solve(prob,Tsit5(),reltol=1e-12,abstol=1e-15)
-
-  resid = sol[2,end] - gL
-
-  return resid, sol
-
-end
-
-"""
-    falknerskan(β[,Vw=0][,ηmax=8][,h0init=1.3]) -> u, η, d99, dstar, theta, cf
-
-Compute the Falkner-Skan boundary layer solution for parameter `β`,
-where `β` can be a value larger than -0.1999 (the separation case).
-It returns, in order
-* the velocity profile (\$u/U\$)
-* the corresponding vertical coordinates \$\\eta\$
-* the proportionality factor on the 99 percent thickness
-* the proportionality factor on the displacement thickness
-* the proportionality factor on the momentum thickness
-* the proportionality factor on the skin friction coefficient
-"""
-function falknerskan(β;Vw = 0.0,ηmax = 8.0,h0init=1.3)
-
-  m = β/(2-β)
-  p = [Vw,m,ηmax]
-
-  h0 = find_zero(x -> fs_integrate(x,p)[1],h0init)
-  resid,sol = fs_integrate(h0,p)
-
-  return _fs_velocity(sol), _fs_eta(sol), blthickness_99(sol), blthickness_displacement(sol),
-  blthickness_momentum(sol), blskinfriction(sol)
-
-end
-
-_fs_streamfunction(sol::OrdinaryDiffEq.ODESolution) = sol[1,:]
-_fs_velocity(sol::OrdinaryDiffEq.ODESolution) = sol[2,:]
-_fs_eta(sol::OrdinaryDiffEq.ODESolution) = sol.t
-
-function blthickness_99(sol::OrdinaryDiffEq.ODESolution)
-
-    u, η = _fs_velocity(sol), _fs_eta(sol)
-
-    sign_diff = sign.(u .- 0.99)  # +1 where u > 0.99, -1 otherwise
-    i0 = findfirst(diff(sign_diff) .== 2.0)
-    return sol.t[i0]+ (0.99-u[i0])/(u[i0+1]-u[i0])*(η[i0+1]-η[i0])
-end
-
-function blthickness_displacement(sol::OrdinaryDiffEq.ODESolution)
-    u, η = _fs_velocity(sol), _fs_eta(sol)
-
-    uhalf = 0.5*(u[2:end].+u[1:end-1])
-    return sum((1 .- uhalf).*diff(η))
-end
-
-function blthickness_momentum(sol::OrdinaryDiffEq.ODESolution)
-    u, η = _fs_velocity(sol), _fs_eta(sol)
-
-    uhalf = 0.5*(u[2:end].+u[1:end-1])
-    return sum(uhalf.*(1 .- uhalf).*diff(η))
-end
-
-blskinfriction(sol::OrdinaryDiffEq.ODESolution) = 2*sol[3,1]
 
 end
