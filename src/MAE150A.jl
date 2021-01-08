@@ -36,9 +36,12 @@ module MAE150A
   include("plot_recipes.jl")
 
   function __init__()
-    ENV["PYTHON"] = ""
 
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
+
+      ENV["PYTHON"] = ""
+      Pkg.add("PyCall")
+      Pkg.build("PyCall")
 
       Plots.pyplot()
       rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
