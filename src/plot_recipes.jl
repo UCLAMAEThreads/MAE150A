@@ -1,7 +1,7 @@
 using RecipesBase
 using ColorTypes
-using LaTeXStrings
 import PlotUtils: cgrad
+using LaTeXStrings
 
 @userplot Trajectories
 
