@@ -42,26 +42,25 @@ module MAE150A
 
   function __init__()
 
-    #ENV["PYTHON"] = ""
     #Conda.add("matplotlib")
     #Conda.add("pyqt")
 
 
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
-      # Force re-build of PyCall with internal Python dist, to make
-      # sure matplotlib is installed:
-      ENV["PYTHON"] = ""
-      Conda.add("matplotlib")
-      Conda.add("pyqt")
-      import PyPlot, PyCall
-      export PyPlot, PyCall
-
-      #Pkg.build("PyCall")
-      #Pkg.precompile()
 
 
-      #using PyCall
+      if isdefined(Main, :IJulia) && Main.IJulia.inited
+        # The lines below this do not work from within a Jupyter notebook.
+        # However, the ones below seem to work to ensure JIT install of matplotlib
+        Conda.add("matplotlib")
+      else
+        # Force re-build of PyCall with internal Python dist, to make
+        # sure matplotlib is installed:
+        ENV["PYTHON"] = ""
+        Pkg.build("PyCall")
+      end
+
 
       # Get LaTeXStrings from PyPlot
       #using PyPlot: LaTeXStrings
