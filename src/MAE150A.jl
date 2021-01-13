@@ -37,8 +37,7 @@ module MAE150A
 
   function __init__()
 
-    ENV["PYTHON"] = ""
-    using PyCall
+
     #Pkg.build("PyCall")
     #Pkg.instantiate()
 
@@ -48,6 +47,9 @@ module MAE150A
       # sure matplotlib is installed:
       #ENV["PYTHON"] = ""
       #Pkg.build("PyCall")
+      
+      ENV["PYTHON"] = ""
+      using PyCall
 
       # Get LaTeXStrings from PyPlot
       #using PyPlot: LaTeXStrings
