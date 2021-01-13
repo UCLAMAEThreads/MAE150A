@@ -37,6 +37,9 @@ module MAE150A
 
   function __init__()
 
+    ENV["PYTHON"] = ""
+    Pkg.build("PyCall")
+
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
       # Force re-build of PyCall with internal Python dist, to make
