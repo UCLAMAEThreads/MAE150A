@@ -11,6 +11,10 @@ module MAE150A
 
   #import Plots: plot
 
+  @reexport using Plots
+  import PyPlot, PyCall
+  export PyPlot, PyCall
+
   using Interpolations
   using JLD
   using Requires
@@ -50,7 +54,7 @@ module MAE150A
       # sure matplotlib is installed:
       ENV["PYTHON"] = ""
       #Pkg.build("PyCall")
-      Pkg.precompile()
+      #Pkg.precompile()
 
 
       #using PyCall
