@@ -38,6 +38,9 @@ module MAE150A
 
   repo_directory = joinpath(@__DIR__,"..")
 
+  proj_file = Pkg.project().path
+
+
   include("plot_recipes.jl")
 
   function __init__()
@@ -49,16 +52,19 @@ module MAE150A
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
 
-
       if isdefined(Main, :IJulia) && Main.IJulia.inited
-        # The lines below this do not work from within a Jupyter notebook.
-        # However, the ones below seem to work to ensure JIT install of matplotlib
-        Conda.add("matplotlib")
+        # The Pkg.build does not work if non-development package, so need to
+        # ensure JIT install of matplotlib using Conda
+        haskey(Conda._installed_packages_dict(),"matplotlib") || Conda.add("matplotlib")
       else
-        # Force re-build of PyCall with internal Python dist, to make
-        # sure matplotlib is installed:
-        ENV["PYTHON"] = ""
-        Pkg.build("PyCall")
+        # For develop (e.g., CI), force re-build of PyCall with internal Python dist,
+        # to make sure matplotlib is installed:
+        if _iswritable(proj_file)
+          ENV["PYTHON"] = ""
+          Pkg.build("PyCall")
+        else
+          error("Project file is not writable. Cannot build PyCall")
+        end
       end
 
 
@@ -81,6 +87,7 @@ module MAE150A
 
   end
 
+  _iswritable(file) = (uperm(file) >> 1) & 1 != 0
 
   function tutorial_footer(; remove_homedir=true)
       display("text/markdown", """
