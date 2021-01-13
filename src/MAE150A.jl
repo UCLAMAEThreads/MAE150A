@@ -36,13 +36,15 @@ module MAE150A
 
   repo_directory = joinpath(@__DIR__,"..")
 
+  proj_file = Pkg.project().path
+
+
   include("plot_recipes.jl")
 
   function __init__()
 
 
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
-
 
 
       if isdefined(Main, :IJulia) && Main.IJulia.inited
@@ -52,7 +54,7 @@ module MAE150A
       else
         # For develop (e.g., CI), force re-build of PyCall with internal Python dist,
         # to make sure matplotlib is installed:
-        if _isuserwritable(proj_file)
+        if _iswritable(proj_file)
           ENV["PYTHON"] = ""
           Pkg.build("PyCall")
         else
@@ -80,7 +82,7 @@ module MAE150A
 
   end
 
-  _isuserwritable(file) = (uperm(file) >> 1) & 1 != 0
+  _iswritable(file) = (uperm(file) >> 1) & 1 != 0
   _hasmatplotlib() = haskey(Conda._installed_packages_dict(),"matplotlib")
 
   function tutorial_footer(; remove_homedir=true)

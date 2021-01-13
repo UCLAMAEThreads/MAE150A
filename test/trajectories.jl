@@ -1,5 +1,4 @@
 using Plots
-pyplot()
 
 @testset "Trajectories" begin
 
