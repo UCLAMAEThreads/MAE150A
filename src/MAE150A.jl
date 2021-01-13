@@ -52,9 +52,11 @@ module MAE150A
       # Force re-build of PyCall with internal Python dist, to make
       # sure matplotlib is installed:
       ENV["PYTHON"] = ""
+      Conda.add("matplotlib")
+      Conda.add("pyqt")
       import PyPlot, PyCall
       export PyPlot, PyCall
-      
+
       #Pkg.build("PyCall")
       #Pkg.precompile()
 
