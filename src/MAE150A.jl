@@ -11,6 +11,9 @@ module MAE150A
 
   #import Plots: plot
 
+  #@reexport using Plots
+
+
   using Interpolations
   using JLD
   using Requires
@@ -19,6 +22,8 @@ module MAE150A
   using Roots
   #using PyCall
   #using PyPlot
+  using Conda
+
 
   export initialize_environment,initialize_ns_solver,
         save_ns_solution,load_ns_solution, get_flowfield,
@@ -37,12 +42,25 @@ module MAE150A
 
   function __init__()
 
+    #Conda.add("matplotlib")
+    #Conda.add("pyqt")
+
+
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
-      # Force re-build of PyCall with internal Python dist, to make
-      # sure matplotlib is installed:
-      ENV["PYTHON"] = ""
-      Pkg.build("PyCall")
+
+
+      if isdefined(Main, :IJulia) && Main.IJulia.inited
+        # The lines below this do not work from within a Jupyter notebook.
+        # However, the ones below seem to work to ensure JIT install of matplotlib
+        Conda.add("matplotlib")
+      else
+        # Force re-build of PyCall with internal Python dist, to make
+        # sure matplotlib is installed:
+        ENV["PYTHON"] = ""
+        Pkg.build("PyCall")
+      end
+
 
       # Get LaTeXStrings from PyPlot
       #using PyPlot: LaTeXStrings
