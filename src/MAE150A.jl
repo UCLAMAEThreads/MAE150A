@@ -11,9 +11,8 @@ module MAE150A
 
   #import Plots: plot
 
-  @reexport using Plots
-  import PyPlot, PyCall
-  export PyPlot, PyCall
+  #@reexport using Plots
+
 
   using Interpolations
   using JLD
@@ -53,6 +52,9 @@ module MAE150A
       # Force re-build of PyCall with internal Python dist, to make
       # sure matplotlib is installed:
       ENV["PYTHON"] = ""
+      import PyPlot, PyCall
+      export PyPlot, PyCall
+      
       #Pkg.build("PyCall")
       #Pkg.precompile()
 
