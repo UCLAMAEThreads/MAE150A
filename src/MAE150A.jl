@@ -47,7 +47,10 @@ module MAE150A
       # sure matplotlib is installed:
       #ENV["PYTHON"] = ""
       #Pkg.build("PyCall")
-      
+
+      using Conda
+      Conda.add("matplotlib")
+      Conda.add("pyqt")
       ENV["PYTHON"] = ""
       using PyCall
 
