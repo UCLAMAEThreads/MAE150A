@@ -45,9 +45,6 @@ module MAE150A
 
   function __init__()
 
-    #Conda.add("matplotlib")
-    #Conda.add("pyqt")
-
 
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
@@ -55,7 +52,7 @@ module MAE150A
       if isdefined(Main, :IJulia) && Main.IJulia.inited
         # The Pkg.build does not work if non-development package, so need to
         # ensure JIT install of matplotlib using Conda
-        haskey(Conda._installed_packages_dict(),"matplotlib") || Conda.add("matplotlib")
+        _hasmatplotlib() || Conda.add("matplotlib")
       else
         # For develop (e.g., CI), force re-build of PyCall with internal Python dist,
         # to make sure matplotlib is installed:
@@ -88,6 +85,7 @@ module MAE150A
   end
 
   _iswritable(file) = (uperm(file) >> 1) & 1 != 0
+  _hasmatplotlib() = haskey(Conda._installed_packages_dict(),"matplotlib")
 
   function tutorial_footer(; remove_homedir=true)
       display("text/markdown", """
