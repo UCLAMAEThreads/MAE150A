@@ -41,7 +41,8 @@ module MAE150A
 
       # Force re-build of PyCall with internal Python dist, to make
       # sure matplotlib is installed:
-      Pkg.add("PyCall")
+      #Pkg.add("PyCall")
+      Pkg.status()
       ENV["PYTHON"] = ""
       Pkg.build("PyCall")
 
