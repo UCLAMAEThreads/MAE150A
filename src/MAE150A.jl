@@ -19,6 +19,8 @@ module MAE150A
   using Roots
   #using PyCall
   #using PyPlot
+  using Conda
+
 
   export initialize_environment,initialize_ns_solver,
         save_ns_solution,load_ns_solution, get_flowfield,
@@ -37,9 +39,9 @@ module MAE150A
 
   function __init__()
 
-
-    #Pkg.build("PyCall")
-    #Pkg.instantiate()
+    ENV["PYTHON"] = ""
+    Conda.add("matplotlib")
+    Conda.add("pyqt")
 
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
@@ -48,11 +50,8 @@ module MAE150A
       #ENV["PYTHON"] = ""
       #Pkg.build("PyCall")
 
-      using Conda
-      Conda.add("matplotlib")
-      Conda.add("pyqt")
-      ENV["PYTHON"] = ""
-      using PyCall
+
+      #using PyCall
 
       # Get LaTeXStrings from PyPlot
       #using PyPlot: LaTeXStrings
