@@ -7,7 +7,6 @@ module MAE150A
   @reexport using ViscousFlow
   @reexport using PotentialFlow
   @reexport using OrdinaryDiffEq
-  #@reexport using LaTeXStrings
 
   #import Plots: plot
 
@@ -65,7 +64,7 @@ module MAE150A
 
       # Get LaTeXStrings from PyPlot
       #using PyPlot: LaTeXStrings
-      using LaTeXStrings
+      @reexport using LaTeXStrings
 
       Plots.pyplot()
       rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
