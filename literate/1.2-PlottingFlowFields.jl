@@ -1,4 +1,4 @@
-# <img src="logo_UCLA_blue_boxed.svg" alt="ucla logo" width="150" align="left"/>
+# <img src="../notebook/logo_UCLA_blue_boxed.svg" alt="ucla logo" width="150" align="left"/>
 
 # ### **MAE 150A - Intermediate Fluid Mechanics**
 # <hr />
@@ -76,6 +76,7 @@ We will use the flow from the same pre-computed CFD solution we used in the prev
 This is the steady state flow past a NACA 4415 airfoil at 5 degrees angle of attack at Reynolds
 number 500.
 =#
+##filename = joinpath(MAE150A.notebook_dir,"NACA4415Re500.jld")
 filename = "NACA4415Re500.jld"
 u, t, sys = load_ns_solution(filename);
 
