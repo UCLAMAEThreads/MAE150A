@@ -48,7 +48,7 @@ function load_ns_solution(filen)
   xlim = round.(limits(g,1),digits=15)
   ylim = round.(limits(g,2),digits=15)
 
-  sys = NavierStokes(Re,ViscousFlow.cellsize(g),xlim,ylim,Δt,bodies,motions,
+  sys = NavierStokes(Re,cellsize(g),xlim,ylim,Δt,bodies,motions,
   freestream = U∞,static_points=sp)
 
   return u, t, sys

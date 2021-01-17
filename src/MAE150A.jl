@@ -79,7 +79,7 @@ module MAE150A
 
     @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
       import ViscousFlow: Edges, NavierStokes, interpolatable_field, GridData,
-                        VectorGridData, ScalarGridData
+                        VectorGridData, ScalarGridData, limits, cellsize
 
       include("viscousflow/fileio.jl")
       include("viscousflow/trajectories.jl")
