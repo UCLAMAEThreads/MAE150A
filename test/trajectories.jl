@@ -1,4 +1,5 @@
 using Plots
+using ViscousFlow
 
 @testset "Trajectories" begin
 
