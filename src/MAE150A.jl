@@ -4,8 +4,6 @@ module MAE150A
 
   using Reexport
 
-  @reexport using ViscousFlow
-  @reexport using PotentialFlow
   @reexport using OrdinaryDiffEq
 
   #import Plots: plot
@@ -79,6 +77,22 @@ module MAE150A
 
     end
 
+    @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
+      import ViscousFlow: Edges, NavierStokes, interpolatable_field, GridData,
+                        VectorGridData, ScalarGridData, limits, cellsize
+
+      include("viscousflow/fileio.jl")
+      include("viscousflow/trajectories.jl")
+    end
+
+    @require PotentialFlow="73af2aaf-3f58-5b29-82a9-435ecf827f5b" begin
+      import PotentialFlow: induce_velocity, Vortex.Point
+
+
+      include("potentialflow/utils.jl")
+      include("potentialflow/trajectories.jl")
+    end
+
   end
 
   _iswritable(file) = (uperm(file) >> 1) & 1 != 0
@@ -133,6 +147,8 @@ module MAE150A
 
 
  # Vector data magnitude (on cell centers)
+ # This can be removed now probably, since it is now in CartesianGrids
+ #=
  """
     mag(u::Edges{Primal/Dual}) -> Nodes{Primal/Dual}
 
@@ -155,7 +171,7 @@ module MAE150A
 
    return umag
  end
-
+=#
 
 
 
@@ -193,10 +209,8 @@ module MAE150A
  end
 
 
-include("fileio.jl")
-include("trajectories.jl")
-include("boundarylayers.jl")
-include("potentialflow.jl")
+ include("boundarylayers.jl")
+ include("trajectories.jl")
 
 
 end
