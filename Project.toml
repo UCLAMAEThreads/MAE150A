@@ -53,7 +53,7 @@ Reexport = "0.2.0, 1.0"
 Requires = "1.1.2"
 Roots = "1.0.7"
 SpecialFunctions = "1.2.1"
-ViscousFlow = "0.4.1"
+ViscousFlow = "0.4.2"
 
 [extras]
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
