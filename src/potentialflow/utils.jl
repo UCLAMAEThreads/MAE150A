@@ -32,6 +32,6 @@ function vortex_patch(xcent,ycent,strength,radius,nring)
         end
     end
 
-    return Vortex.Point.(zvort,strength/cnt)
+    return PotentialFlow.Vortex.Point.(zvort,strength/cnt)
 
 end
