@@ -23,8 +23,8 @@ using LaTeXStrings
   end
 
   @series begin
-    xlims := (-1,3)
-    ylims := (-1,1)
+    xlims --> (-1,3)
+    ylims --> (-1,1)
     xguide := L"x"
     yguide := L"y"
     title := "Particle trajectories"
@@ -51,12 +51,12 @@ end
   body = sys.bodies[1]
 
   layout := (2,1)
-  size := (600,600)
+  size --> (600,600)
   xlims := (-1,2)
 
   @series begin
     subplot := 1
-    ylims := (-0.5,0.5)
+    ylims --> (-0.5,0.5)
     xguide := L"x"
     yguide := L"y"
     aspect_ratio := 1
@@ -66,7 +66,7 @@ end
   @series begin
     subplot := 1
     aspect_ratio := 1
-    ylims := (-0.5,0.5)
+    ylims --> (-0.5,0.5)
     title := "Particle trajectory"
     xtraj, ytraj
   end
