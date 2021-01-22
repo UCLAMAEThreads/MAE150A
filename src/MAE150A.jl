@@ -26,7 +26,8 @@ module MAE150A
         field_along_trajectory, field_deriv_along_trajectory,
         convective_acceleration, mag, ddt, pressure,
         OseenVortex,
-        complexgrid, vortex_patch,
+        complexgrid, vortex_patch, dotproduct,equilateraltriangle,circle,
+        simulate_flow,surface_velocity,
         add_arrow!,add_arrows!,
         falknerskan
 
@@ -34,7 +35,8 @@ module MAE150A
   repo_directory = joinpath(@__DIR__,"..")
 
   proj_file = Pkg.project().path
-
+  #proj_dir = dirname(proj_file)
+  #notebook_dir = joinpath(proj_dir,"notebook")
 
   include("plot_recipes.jl")
 
