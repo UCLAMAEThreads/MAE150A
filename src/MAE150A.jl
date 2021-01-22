@@ -26,7 +26,8 @@ module MAE150A
         field_along_trajectory, field_deriv_along_trajectory,
         convective_acceleration, mag, ddt, pressure,
         OseenVortex,
-        complexgrid, vortex_patch,
+        complexgrid, vortex_patch, dotproduct,equilateraltriangle,circle,
+        simulate_flow,surface_velocity,
         add_arrow!,add_arrows!,
         falknerskan
 
