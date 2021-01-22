@@ -1,4 +1,4 @@
-#src include("header.jl")
+include("header.jl")
 
 #=
 # Planar potential flows past stationary bodies
@@ -109,7 +109,8 @@ U∞ = 1.0 + 0im
 fs = Freestreams.Freestream(U∞)
 
 
-#= ### Flow past a triangle
+#=
+### Flow past a triangle
 Let's start by considering flow past a equilateral triangle.
 We will discretize this triangle into small segments, each with length $\Delta s$.
 =#
