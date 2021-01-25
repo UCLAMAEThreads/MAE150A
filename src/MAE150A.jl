@@ -64,6 +64,7 @@ module MAE150A
 
       # Get LaTeXStrings from PyPlot
       #using PyPlot: LaTeXStrings
+      using PyCall
       @reexport using LaTeXStrings
 
       Plots.pyplot()

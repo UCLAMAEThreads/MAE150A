@@ -13,7 +13,7 @@ function get_segment_coords(ps::Plots.Plot{Plots.PyPlotBackend},level::Integer)
       error("This contour level is not on the list.")
     end
     lc = get(contourset."collections",level-1)
-    seg_array_list = pycall(lc."get_segments",Array)
+    seg_array_list = PyCall.pycall(lc."get_segments",Array)
 
     return seg_array_list
 end
@@ -43,7 +43,7 @@ function arrowhead!(ps::Plots.Plot{Plots.PyPlotBackend},x,y,u,v,scale;open_angle
 
     xdata, ydata = arrowhead_coords(x,y,u,v,scale,open_angle=open_angle)
 
-    return plot!(ps,xdata,ydata,color=:black,linewidth=1)
+    return Plots.plot!(ps,xdata,ydata,color=:black,linewidth=1)
 end
 
 function add_arrow!(ps::Plots.Plot{Plots.PyPlotBackend},seg::Array{Float64,2},elements;num_arrows=1)
@@ -69,7 +69,7 @@ function add_arrow!(ps::Plots.Plot{Plots.PyPlotBackend},seg::Array{Float64,2},el
     interv = 1/(num_arrows+1)
     for f in interv:interv:1-interv
         xhead, yhead = spl(f)
-        w = induce_velocity(xhead+im*yhead,elements,0)
+        w = PotentialFlow.induce_velocity(xhead+im*yhead,elements,0)
         arrowhead!(ps,xhead,yhead,real(w),imag(w),0.1)
     end
     return ps
