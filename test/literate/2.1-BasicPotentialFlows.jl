@@ -115,8 +115,8 @@ an array we have already set up (`ψ`)."
 ψ .= PotentialFlow.streamfunction(zg,fs);
 
 # Plot the streamfunction contours
-plot(xg,yg,ψ,xlim=(-2,2),ylim=(-2,2),color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a uniform flow");
-#src add_arrows!(ps,fs)
+p = plot(ψ,g,xlim=(-2,2),ylim=(-2,2),color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a uniform flow",show=true)
+add_arrows!(p,fs)
 
 #=
 As expected, the streamlines are angled at 60 degrees.
@@ -145,8 +145,8 @@ s = Source.Point(zs,Q)
 
 # Evaluate its streamfunction and plot it:
 ψ .= PotentialFlow.streamfunction(zg,s);
-plot(ψ,g,xlim=(-2,2),ylim=(-2,2),color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a source")
-#src add_arrows!(p2,s)
+p = plot(ψ,g,xlim=(-2,2),ylim=(-2,2),color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a source",show=true)
+add_arrows!(p,s)
 
 #=
 This looks as expected, but a little strange along the $-x$ axis. Remember, the
@@ -193,8 +193,8 @@ v = Vortex.Point(zv,Γ)
 
 # Evaluate its streamfunction and plot it:
 ψ .= PotentialFlow.streamfunction(zg,v);
-plot(ψ,g,color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a vortex")
-#src add_arrows!(ps,v)
+p = plot(ψ,g,color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a vortex",show=true)
+add_arrows!(p,v)
 
 #=
 ### Another singularity: a dipole (or doublet)
@@ -215,8 +215,8 @@ d = Doublets.Doublet(zd,D*exp(im*α))
 
 
 ψ .= PotentialFlow.streamfunction(zg,d);
-plot(ψ,g,xlim=(-2,2),ylim=(-2,2),levels=range(-1,1,length=15),color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a doublet")
-#src add_arrows!(ps,d)
+p = plot(ψ,g,xlim=(-2,2),ylim=(-2,2),levels=range(-1,1,length=15),color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a doublet",show=true)
+add_arrows!(p,d)
 
 
 #=
@@ -236,8 +236,8 @@ The strength is $\sigma$ and the rotation angle of the corner is $\alpha$.
 c = Corner(σ,ν,α)
 
 ψ .= PotentialFlow.streamfunction(zg,c);
-plot(ψ,g,xlim=(-2,2),ylim=(-2,2),levels=range(-3,3,length=31),color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a corner")
-#src add_arrows!(ps,c)
+p = plot(ψ,g,xlim=(-2,2),ylim=(-2,2),levels=range(-3,3,length=31),color=:black,xlabel=L"x",ylabel=L"y",title="Streamlines of a corner",show=true)
+add_arrows!(p,c)
 
 #=
 Note the straight streamlines that cross at the origin. There is a stagnation point there.
@@ -267,8 +267,8 @@ of the source, so that it is along the $+x$ axis.
 τ = 0.0 ## angle at which we prefer the branch cut
 rot = exp(-im*(π+τ))
 ψ .= PotentialFlow.streamfunction(zg,f) .+ PotentialFlow.streamfunction(zg.*rot,s);
-plot(ψ,g,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamlines of a uniform flow + source")
-#src add_arrows!(ps,(f,s))
+p = plot(ψ,g,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamlines of a uniform flow + source",show=true)
+add_arrows!(p,(f,s))
 
 #=
 There is a **stagnation point** in this flow somewhere to the left of the source,
@@ -298,10 +298,10 @@ ystag = 0
 ψstag = ψfield(xstag,ystag)
 
 # Now add a streamline with this value of $\psi$ to the plot:
-plot(ψ,g,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamlines of a uniform flow + source")
-plot!(ψ,g,levels=[ψstag],linewidth=2)
-scatter!([xstag],[ystag],label="stagnation point")
-#src add_arrows!(ps,(f,s))
+p = plot(ψ,g,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamlines of a uniform flow + source",show=true)
+plot!(p,ψ,g,levels=[ψstag],linewidth=2)
+scatter!(p,[xstag],[ystag],label="stagnation point")
+add_arrows!(p,(f,s))
 
 #=
 ### Another combination: two vortices
@@ -331,9 +331,9 @@ v = Vortex.Point.(zvort,Γvort)
 
 # Visualize with the usual plot
 ψ .= PotentialFlow.streamfunction(zg,v)
-plot(ψ,g,color=:black,levels=range(-1,1,length=15),xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamlines of a pair of vortices")
-plot!(v) ## This adds markers for the vortices
-#src add_arrows!(ps,v)
+p = plot(ψ,g,color=:black,levels=range(-1,1,length=15),xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamlines of a pair of vortices",show=true)
+plot!(p,v) ## This adds markers for the vortices
+add_arrows!(p,v)
 
 #=
 Let's evaluate the velocity at the origin, which is a convenient point on the
@@ -377,9 +377,9 @@ vortex_system = (v1,v2);
 
 # Now plot them
 ψ .= PotentialFlow.streamfunction(zg,vortex_system)
-plot(ψ,g,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamlines of two vortex patches")
-plot!(vortex_system)
-#src add_arrows!(ps,vortex_system)
+p = plot(ψ,g,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamlines of two vortex patches",show=true)
+plot!(p,vortex_system)
+add_arrows!(p,vortex_system)
 
 # We can evaluate the velocity of this system at any point, e.g.,
 z_eval = 0.0+0.0*im
