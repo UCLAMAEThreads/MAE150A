@@ -57,7 +57,7 @@ module MAE150A
           ENV["PYTHON"] = ""
           Pkg.build("PyCall")
         else
-          error("Project file is not writable. Cannot build PyCall")
+          _hasmatplotlib() || error("Project file is not writable. Cannot build PyCall")
         end
       end
 

@@ -33,6 +33,7 @@ end
 
 for (root, dirs, files) in walkdir(litdir)
     for file in files
+        #endswith(file,".jl") && startswith(file,"3.1") && Literate.notebook(joinpath(root, file),outputdir,preprocess = replace_includes)
         endswith(file,".jl") && Literate.notebook(joinpath(root, file),outputdir,preprocess = replace_includes)
     end
 end
