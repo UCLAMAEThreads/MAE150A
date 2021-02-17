@@ -41,7 +41,7 @@ It returns, in order
 * the proportionality factor on the momentum thickness
 * the proportionality factor on the skin friction coefficient
 """
-function falknerskan(β;Vw = 0.0,ηmax = 8.0,h0init=1.3)
+function falknerskan(β;Vw = 0.0,ηmax = 10.0,h0init=1.3)
 
   m = β/(2-β)
   p = [Vw,m,ηmax]

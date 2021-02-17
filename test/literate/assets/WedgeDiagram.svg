@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="514px" height="271px" viewBox="0 0 514 271" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 58 (84663) - https://sketch.com -->
+    <title>WedgeDiagram</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="WedgeDiagram" transform="translate(0.000000, 1.000000)">
+            <polygon id="Path" fill-opacity="0.30323" fill="#979797" points="206 150 486 30 486.5 270"></polygon>
+            <path d="" id="Path-2" stroke="#979797"></path>
+            <path id="Path-3" d="M72.7451306,145.064212 L81.5198644,150 L72.7451306,154.935788 L72.2548694,154.064212 L78.591,150.5 L0,150.5 L0,149.5 L78.591,149.5 L72.2548694,145.935788 L72.7451306,145.064212 Z" fill="#979797" fill-rule="nonzero"></path>
+            <path id="Path-3" d="M319.841526,49.0766409 L329.878654,49.8602327 L323.996838,58.0310466 L323.185249,57.4468184 L327.432,51.546 L233.085469,95.3285449 L232.664531,94.4214551 L327.012,50.639 L319.763693,50.0736073 L319.841526,49.0766409 Z" fill="#979797" fill-rule="nonzero"></path>
+            <path id="Path-4" d="M259.873462,122.320095 L269.915558,122.957516 L263.380364,130.60874 L261.821,126.925 L206.194828,150.46048 L205.805172,149.53952 L261.432,126.003 L259.873462,122.320095 Z" fill="#000000" fill-rule="nonzero"></path>
+            <path id="Path-4" d="M182.307982,93.0383408 L189.919232,99.6200491 L186.225,101.156 L206.461659,149.807982 L205.538341,150.192018 L185.302,101.54 L181.609365,103.076365 L182.307982,93.0383408 Z" fill="#000000" fill-rule="nonzero"></path>
+            <path id="Path-4" d="M359.057982,17.635997 L366.669232,24.2177053 L362.975,25.754 L383.211659,74.4056387 L382.288341,74.7896738 L362.052,26.138 L358.359365,27.6740214 L359.057982,17.635997 Z" fill="#000000" fill-rule="nonzero"></path>
+            <text id="Ue(x)-=-Ax-β/(2-β)" transform="translate(276.680986, 59.836510) rotate(-27.000000) translate(-276.680986, -59.836510) " font-family="Times-BoldItalic, Times" font-size="12" font-style="italic" font-weight="bold" fill="#1A1919">
+                <tspan x="235.652177" y="59.8365098">U</tspan>
+                <tspan x="244.318193" y="59.8365098" font-size="9">e</tspan>
+                <tspan x="248.312822" y="59.8365098">(x) = Ax </tspan>
+                <tspan x="291.707353" y="59.8365098" font-size="9">β/(2-β)</tspan>
+            </text>
+            <text id="x" font-family="Times-BoldItalic, Times" font-size="12" font-style="italic" font-weight="bold" fill="#1A1919">
+                <tspan x="251" y="122">x</tspan>
+            </text>
+            <text id="y" font-family="Times-BoldItalic, Times" font-size="12" font-style="italic" font-weight="bold" fill="#1A1919">
+                <tspan x="166.336914" y="98">y</tspan>
+            </text>
+            <path id="Path" d="M300.889602,109.578273 L309.519964,114.751942 L306.136979,116.907249 C313.630531,129.2868 316.615234,138.288696 316.615234,150 L316.615234,150 L315.615234,150 C315.615234,138.350714 312.615444,129.444423 305.00854,116.975929 L305.292,117.443 L301.928884,119.586764 L300.889602,109.578273 Z" fill="#000000" fill-rule="nonzero"></path>
+            <text id="πβ/2" font-family="Times-BoldItalic, Times" font-size="12" font-style="italic" font-weight="bold" fill="#1A1919">
+                <tspan x="318.203125" y="133">πβ/2</tspan>
+            </text>
+            <path d="M206,150 C219.601487,130.735159 235.633819,117.951546 255.331487,105.132164 C275.029154,92.3127824 353.432415,50.6354846 397.540898,31.8588819 C441.649381,13.0822792 460.746865,7.67946777 477,0" id="Path-6" stroke="#979797"></path>
+            <path d="M382.75,74.5976562 C392.634766,61.8365098 396.306028,61.8515625 391.808594,50.5 C388.810304,42.9322917 385.790773,34.6673177 382.75,25.7050781" id="Path-7" stroke="#979797"></path>
+            <path d="M378.259766,63.2734375 L393.708654,55.6533203" id="Path-8" stroke="#979797"></path>
+            <path d="M381,69.6201172 L390.5,65.5" id="Path-8" stroke="#979797"></path>
+            <path d="M374.259766,55.2734375 L390.5,48.5" id="Path-8" stroke="#979797"></path>
+            <path d="M371.620117,47.0068359 L387.860352,40.2333984" id="Path-8" stroke="#979797"></path>
+            <text id="u(x,y)/Ue(x)" transform="translate(421.500000, 39.500000) rotate(-22.000000) translate(-421.500000, -39.500000) " font-family="Times-BoldItalic, Times" font-size="12" font-style="italic" font-weight="bold" fill="#1A1919">
+                <tspan x="392.010498" y="42">u(x,y)/U</tspan>
+                <tspan x="433.002686" y="42" font-size="9">e</tspan>
+                <tspan x="436.997314" y="42">(x)</tspan>
+            </text>
+            <text id="U∞" font-family="Times-BoldItalic, Times" font-size="12" font-style="italic" font-weight="bold" fill="#1A1919">
+                <tspan x="32.4589844" y="138">U</tspan>
+                <tspan x="41.125" y="138" font-size="9">∞</tspan>
+            </text>
+            <path d="M208,150 L516.390625,150" id="Path-5" stroke="#979797" stroke-dasharray="6"></path>
+        </g>
+    </g>
+</svg>
