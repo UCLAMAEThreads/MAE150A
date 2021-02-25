@@ -6,6 +6,42 @@ import Base:+,*,-,/,^
 
 using Roots
 
+export default_unit,ThermodynamicUnits,SI,SIOtherUnits,Imperial,OtherUnits,Dimensionless
+export convert_unit
+export Kelvin, K, Celsius, C, F, TemperatureUnits
+export Pascals, Pa, KPa, atm, psi, PressureUnits
+export KGPerCuM, DensityUnits
+export JPerKG, KJPerKG, SpecificEnergyUnits, EnthalpyUnits, InternalEnergyUnits,
+        HeatFluxUnits
+export MPerSec, VelocityUnits, SoundSpeedUnits
+export SqM, SqCM,AreaUnits
+export MachNumberUnits
+export JPerKGK, KJPerKGK, GasConstantUnits
+export EntropyUnits
+export KGPerSec, MassFlowRateUnits
+export Meters, CM, LengthUnits, DiameterUnits
+export FrictionFactorUnits, FLOverDUnits
+
+export ThermodynamicProcess, Isentropic, NormalShock, FannoFlow, RayleighFlow
+export ThermodynamicQuantity
+export units, value, name
+export ThermodynamicProperty
+export SpecificHeatRatio
+export SpecificHeatPressure,SpecificHeatVolume,GasConstant
+export DefaultGasConstant, DefaultSpecificHeatRatio
+export Gas, PerfectGas, DefaultPerfectGas
+export Air, He, O2,CO2,H2,N2
+export ThermodynamicStateVar, Pressure, Temperature, Density, Enthalpy, InternalEnergy, SoundSpeed
+export Area, MachNumber, Entropy, MassFlowRate,Velocity,Length, Diameter
+export AreaRatio, FrictionFactor, FLOverD, HeatFlux
+export StagnationPressure, StagnationDensity, StagnationEnthalpy,StagnationTemperature
+export StagnationPressureRatio, PressureRatio, DensityRatio, TemperatureRatio
+export T0OverT,P0OverP,ρ0Overρ,AOverAStar,AStar
+export FLStarOverD,POverPStar,ρOverρStar,TOverTStar,P0OverP0Star
+export HeatFlux,T0OverT0Star,VOverVStar
+
+
+
 #=
 Note: to add a new quantity, you define its units here, calling its units, for
 example, MyQtyUnits. Then, add MyQty below to the list of strings in
@@ -24,6 +60,7 @@ abstract type Dimensionless <: ThermodynamicUnits end
 function default_unit end
 
 convert_unit(::Type{U},::Type{U},val) where {U<:ThermodynamicUnits} = val
+
 
 # temperature
 abstract type Kelvin <: SI end
@@ -60,11 +97,11 @@ convert_unit(::Type{atm},::Type{Pascals},val) = val/101325
 convert_unit(::Type{Pascals},::Type{psi},val) = val*6894.76
 convert_unit(::Type{psi},::Type{Pascals},val) = val/6894.76
 
-
 # density
 abstract type KGPerCuM <: SI end
 DensityUnits = Union{KGPerCuM}
 default_unit(::Type{T}) where {T<:DensityUnits} = KGPerCuM
+
 
 # energies
 abstract type JPerKG <: SI end
@@ -76,24 +113,28 @@ convert_unit(::Type{KJPerKG},::Type{JPerKG},val) = val*1e-3
 
 # enthalpy
 EnthalpyUnits = SpecificEnergyUnits
-default_unit(::Type{T}) where {T<:EnthalpyUnits} = default_unit(SpecificEnergyUnits)
+#default_unit(::Type{T}) where {T<:EnthalpyUnits} = default_unit(SpecificEnergyUnits)
 
 # internal energy
 InternalEnergyUnits = SpecificEnergyUnits
-default_unit(::Type{T}) where {T<:InternalEnergyUnits} = default_unit(SpecificEnergyUnits)
+#default_unit(::Type{T}) where {T<:InternalEnergyUnits} = default_unit(SpecificEnergyUnits)
 
 # heat flux
 HeatFluxUnits = SpecificEnergyUnits
-default_unit(::Type{T}) where {T<:HeatFluxUnits} = default_unit(SpecificEnergyUnits)
+#default_unit(::Type{T}) where {T<:HeatFluxUnits} = default_unit(SpecificEnergyUnits)
 
 # velocities
 abstract type MPerSec <: SI end
 VelocityUnits = Union{MPerSec}
 default_unit(::Type{VelocityUnits}) = MPerSec
 
+
+
 # speed of sound
 SoundSpeedUnits = VelocityUnits
-default_unit(::Type{T}) where {T<:SoundSpeedUnits} = default_unit(VelocityUnits)
+#default_unit(::Type{T}) where {T<:SoundSpeedUnits} = default_unit(VelocityUnits)
+
+
 
 # duct area
 abstract type SqM <: SI end
@@ -102,6 +143,7 @@ AreaUnits = Union{SqM,SqCM}
 default_unit(::Type{T}) where {T<:AreaUnits} = SqM
 convert_unit(::Type{SqM},::Type{SqCM},val) = val*1e-4
 convert_unit(::Type{SqCM},::Type{SqM},val) = val*1e4
+
 
 
 # Mach number
@@ -116,9 +158,10 @@ default_unit(::Type{T}) where {T<:GasConstantUnits} = JPerKGK
 convert_unit(::Type{JPerKGK},::Type{KJPerKGK},val) = val*1e3
 convert_unit(::Type{KJPerKGK},::Type{JPerKGK},val) = val*1e-3
 
+
 # entropy
 EntropyUnits = GasConstantUnits
-default_unit(::Type{T}) where {T<:EntropyUnits} = JPerKGK
+#default_unit(::Type{T}) where {T<:EntropyUnits} = JPerKGK
 
 # mass flow rate
 abstract type KGPerSec <: SI end
@@ -133,18 +176,18 @@ default_unit(::Type{LengthUnits}) = Meters
 convert_unit(::Type{Meters},::Type{CM},val) = val*1e-2
 convert_unit(::Type{CM},::Type{Meters},val) = val*1e2
 
+
 # diameter
 DiameterUnits = LengthUnits
-default_unit(::Type{T}) where {T<:DiameterUnits} = default_unit(LengthUnits)
+#default_unit(::Type{T}) where {T<:DiameterUnits} = default_unit(LengthUnits)
 
 # friction factor f
 FrictionFactorUnits = Dimensionless
-default_unit(::Type{T}) where {T<:FrictionFactorUnits} = Dimensionless
+#default_unit(::Type{T}) where {T<:FrictionFactorUnits} = Dimensionless
 
 # f*L/D
 FLOverDUnits = Dimensionless
-default_unit(::Type{T}) where {T<:FLOverDUnits} = Dimensionless
-
+#default_unit(::Type{T}) where {T<:FLOverDUnits} = Dimensionless
 
 
 ###### THERMODYNAMIC PROCESSES #######
@@ -187,6 +230,7 @@ for op in (:(^),)
     @eval $op(s::ThermodynamicQuantity,C::Real) = $op(s.val,C)
 end
 
+
 abstract type ThermodynamicProperty{U<:ThermodynamicUnits} <: ThermodynamicQuantity{U} end
 
 struct SpecificHeatRatio{Dimensionless} <: ThermodynamicProperty{Dimensionless}
@@ -194,6 +238,7 @@ struct SpecificHeatRatio{Dimensionless} <: ThermodynamicProperty{Dimensionless}
     name :: String
 end
 SpecificHeatRatio(val) = SpecificHeatRatio{Dimensionless}(val,"SpecificHeatRatio")
+
 
 ###### THERMODYNAMIC PROPERTIES #######
 
@@ -208,9 +253,12 @@ for qty in ("SpecificHeatPressure","SpecificHeatVolume","GasConstant")
     @eval $qtysym(val::Real;units::Type{T}=default_unit(GasConstantUnits)) where {T<:GasConstantUnits} = $qtysym{units}(val,$qty)
 end
 
+
 # default values
 const DefaultGasConstant = GasConstant(287)
 const DefaultSpecificHeatRatio = SpecificHeatRatio(1.4)
+
+
 
 SpecificHeatPressure(;γ::SpecificHeatRatio=DefaultSpecificHeatRatio,R::GasConstant=DefaultGasConstant) = SpecificHeatPressure(γ*R/(γ-1))
 SpecificHeatVolume(;γ::SpecificHeatRatio=DefaultSpecificHeatRatio,R::GasConstant=DefaultGasConstant) = SpecificHeatVolume(R/(γ-1))
@@ -243,6 +291,8 @@ function Base.show(io::IO, m::MIME"text/plain", g::PerfectGas)
     println(io,"   cv = $(round(value(SpecificHeatVolume(g)),sigdigits=6))")
 
 end
+
+
 
 const DefaultPerfectGas = PerfectGas()
 const Air = PerfectGas()
@@ -283,6 +333,7 @@ for qty in ("Pressure","Temperature","Density","Enthalpy","InternalEnergy","Soun
 
 end
 
+
 # other thermodynamic state quantities
 for qty in ("Area","MachNumber","Entropy","MassFlowRate","Velocity",
             "Length","Diameter","FrictionFactor","FLOverD","HeatFlux")
@@ -298,6 +349,7 @@ for qty in ("Area","MachNumber","Entropy","MassFlowRate","Velocity",
             $qtysym{default_unit($unitsym)}(convert_unit(default_unit($unitsym),units,val),$qty)
 end
 
+
 # ratios of thermodynamic quantities
 for qtybase in ("Area","Pressure","Temperature","Density","MachNumber",
                 "StagnationPressure","Velocity")
@@ -308,7 +360,7 @@ for qtybase in ("Area","Pressure","Temperature","Density","MachNumber",
 
     @eval $unitsym = Dimensionless
 
-    @eval default_unit(::Type{T}) where {T<:$unitsym} = Dimensionless
+    #@eval default_unit(::Type{T}) where {T<:$unitsym} = Dimensionless
 
     @eval struct $qtysym{U <: $unitsym} <: ThermodynamicStateVar{U}
         val :: Float64
@@ -383,6 +435,8 @@ SoundSpeed(u::Velocity,M::MachNumber) = SoundSpeed(u/M)
 # mass flow rate
 MassFlowRate(ρ::Density,u::Velocity,A::Area) = MassFlowRate(ρ*u*A)
 
+
+
 function T0OverT(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     γ = SpecificHeatRatio(gas)
     return TemperatureRatio(1+0.5*(γ-1)*M^2)
@@ -412,6 +466,7 @@ function P0OverP(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfect
     Tratio = T0OverT(M,Isentropic,gas=gas)
     PressureRatio(Tratio,Isentropic,gas=gas)
 end
+
 
 function DensityRatio(Tratio::TemperatureRatio,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     γ = SpecificHeatRatio(gas)
@@ -479,6 +534,7 @@ function MachNumber(ρ_over_ρ0::DensityRatio,::Type{Isentropic};gas::PerfectGas
 end
 
 MachNumber(ρ::Density,ρ0::StagnationDensity,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas) = MachNumber(DensityRatio(ρ/ρ0),gas=gas)
+
 
 # Area-Mach number relation
 function AOverAStar(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
@@ -550,6 +606,7 @@ function Entropy(s1::Entropy,M1::MachNumber,::Type{NormalShock};gas::PerfectGas=
 
 end
 
+
 ######## FANNO FLOW ########
 
 
@@ -573,6 +630,10 @@ end
 FLOverD(f::FrictionFactor,L::Length,D::Diameter) = FLOverD(f*L/D)
 Length(fLoverD::FLOverD,D::Diameter,f::FrictionFactor) = Length(fLoverD*D/f)
 
+
+
+
+
 function POverPStar(M::MachNumber,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
   γ = SpecificHeatRatio(gas)
   return PressureRatio(1/M*sqrt((1+γ)/(2+(γ-1)*M^2)))
@@ -594,6 +655,7 @@ function MachNumber(T_over_Tstar::TemperatureRatio,::Type{FannoFlow};gas::Perfec
 
 end
 
+
 function P0OverP0Star(M::MachNumber,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
   γ = SpecificHeatRatio(gas)
   return StagnationPressureRatio(1/M*((2+(γ-1)*M^2)/(γ+1))^((γ+1)/(2(γ-1))))
@@ -612,6 +674,7 @@ function MachNumber(p0_over_p0star::StagnationPressureRatio,::Type{FannoFlow};ga
 end
 
 ####### RAYLEIGH FLOW ########
+
 
 HeatFlux(h01::StagnationEnthalpy,h02::StagnationEnthalpy) = HeatFlux(h02-h01)
 
@@ -663,5 +726,3 @@ function P0OverP0Star(M::MachNumber,::Type{RayleighFlow};gas::PerfectGas=Default
   γ = SpecificHeatRatio(gas)
   return PressureRatio((γ+1)/(1+γ*M^2)*((2+(γ-1)*M^2)/(γ+1))^(γ/(γ-1)))
 end
-
-nothing
