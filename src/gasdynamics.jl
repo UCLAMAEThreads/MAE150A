@@ -2,7 +2,7 @@
 Quasi-1d gas dynamics routines
 =#
 
-import Base:+,*,-,/,^
+import Base:+,*,-,/,^,>,<,>=,<=,==,isapprox
 
 using Roots
 
@@ -215,10 +215,16 @@ function Base.show(io::IO, m::MIME"text/plain", s::ThermodynamicQuantity{U}) whe
     print(io,"$(s.name) = $(round(s.val,sigdigits=6)) $units")
 end
 
-for op in (:(+),:(-))
+for op in (:(+),:(-),:(>),:(<),:(>=),:(<=),:(==))
     @eval $op(s1::ThermodynamicQuantity{U1},s2::ThermodynamicQuantity{U1}) where {U1 <: ThermodynamicUnits} = $op(s1.val,s2.val)
     @eval $op(s::ThermodynamicQuantity,C::Real) = $op(s.val,C)
     @eval $op(C::Real,s::ThermodynamicQuantity) = $op(C,s.val)
+end
+
+for op in (:(isapprox),)
+    @eval $op(s1::ThermodynamicQuantity{U1},s2::ThermodynamicQuantity{U1};kwargs...) where {U1 <: ThermodynamicUnits} = $op(s1.val,s2.val;kwargs...)
+    @eval $op(s::ThermodynamicQuantity,C::Real;kwargs...) = $op(s.val,C;kwargs...)
+    @eval $op(C::Real,s::ThermodynamicQuantity;kwargs...) = $op(C,s.val;kwargs...)
 end
 
 for op in (:(*),:(/))

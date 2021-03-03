@@ -1,23 +1,27 @@
 # Converging-diverging nozzles
-export Nozzle, areas, converging, diverging, throat, pressure_nozzle, machnumber_nozzle
+export Nozzle, areas, positions, converging, diverging, throat,
+      pressure_nozzle, machnumber_nozzle, nozzle_quality
 
 
-struct Nozzle{T}
+struct Nozzle{T,S}
     Ai :: T
     At :: T
     Ae :: T
+    x :: S
     areas :: Vector{T}
     throat_index :: Integer
 end
 
-function Nozzle(Ai::Area,At::Area,Ae::Area)
-    a = areas(Ai,At,Ae)
-    Nozzle(Ai,At,Ae,a,_find_throat(a,At))
+function Nozzle(Ai::Area,At::Area,Ae::Area;xmin=-1.0,xmax=3.0,len=201)
+    x = range(xmin,xmax,length=len)
+    a = areas(x,Ai,At,Ae)
+    Nozzle(Ai,At,Ae,x,a,_find_throat(a,At))
 end
 
-function areas(Ai::Area,At::Area,Ae::Area;len=201)
-    a = Array{Area,1}(undef,len)
-    a .= Area.(_nozzle_area(value(Ai),value(At),value(Ae),len=len))
+function areas(x,Ai::Area,At::Area,Ae::Area)
+    a = Array{Area,1}(undef,length(x))
+    araw = _nozzle_area(x,value(Ai),value(At),value(Ae))
+    a .= Area.(araw)
 end
 
 function _find_throat(a::AbstractVector{T},At::Area) where T <: Area
@@ -27,18 +31,25 @@ function _find_throat(a::AbstractVector{T},At::Area) where T <: Area
 end
 
 areas(n::Nozzle) = n.areas
+positions(n::Nozzle) = n.x
 throat(n::Nozzle) = n.At
 exit(n::Nozzle) = n.Ae
 inlet(n::Nozzle) = n.Ai
 converging(n::Nozzle) = view(areas(n),1:n.throat_index)
 diverging(n::Nozzle) = view(areas(n),n.throat_index+1:length(areas(n)))
 
+function Base.show(io::IO, noz::Nozzle)
+  println(io, "Converging-diverging nozzle")
+  println(io, "   Inlet area (sq cm)= "*string(value(inlet(noz),SqCM)))
+  println(io, "   Throat area (sq cm)= "*string(value(throat(noz),SqCM)))
+  println(io, "   Exit area (sq cm)= "*string(value(exit(noz),SqCM)))
+end
+
 # Shaping of nozzle cross-section
 _rad_conv(x,Rt,Ri) = Rt + (Ri-Rt)*x^2
 _rad_div(x,Rt,Re,c) = Re + (Rt-Re)*exp(-c*x^2)
 _radius_shape(x,Ri,Rt,Re,c) = x <= 0 ? _rad_conv(x,Rt,Ri) : _rad_div(x,Rt,Re,c)
-function _nozzle_area(Ai,At,Ae;c=1,xmin=-1.0,xmax=3.0,len=201)
-    x = range(xmin,xmax,length=len)
+function _nozzle_area(x,Ai,At,Ae;c=1)
     return π*_radius_shape.(x,sqrt(Ai/π),sqrt(At/π),sqrt(Ae/π),c).^2
 end
 
@@ -184,8 +195,8 @@ function machnumber_nozzle(noz::Nozzle,pb::Pressure,p01::StagnationPressure;gas:
   pb_subcrit = _pressure_subsonic_critical(noz,p01,gas=gas)
   pb_supcrit = _pressure_supersonic_shock_critical(noz,p01,gas=gas)
 
-  M = value(pb) > value(pb_subcrit) ? machnumber_subsonic(areas(noz),pb,p01,gas=gas) :
-            (value(pb) > value(pb_supcrit) ? machnumber_nozzle_with_shock(noz,pb,p01,gas=gas) : machnumber_nozzle_supersonic(noz,gas=gas))
+  M = pb > pb_subcrit ? machnumber_subsonic(areas(noz),pb,p01,gas=gas) :
+            (pb > pb_supcrit ? machnumber_nozzle_with_shock(noz,pb,p01,gas=gas) : machnumber_nozzle_supersonic(noz,gas=gas))
 
   return M
 end
@@ -193,8 +204,11 @@ end
 function pressure_nozzle(noz::Nozzle,pb::Pressure,p01::StagnationPressure;gas::PerfectGas=DefaultPerfectGas)
   pb_subcrit = _pressure_subsonic_critical(noz,p01,gas=gas)
   pb_supcrit = _pressure_supersonic_shock_critical(noz,p01,gas=gas)
-  p = value(pb) > value(pb_subcrit) ? pressure_subsonic(areas(noz),pb,p01,gas=gas) :
-            (value(pb) > value(pb_supcrit) ? pressure_nozzle_with_shock(noz,pb,p01,gas=gas) : pressure_nozzle_supersonic(noz,p01,gas=gas))
+  p = pb > pb_subcrit ? pressure_subsonic(areas(noz),pb,p01,gas=gas) :
+            (pb > pb_supcrit ? pressure_nozzle_with_shock(noz,pb,p01,gas=gas) : pressure_nozzle_supersonic(noz,p01,gas=gas))
+
+  # Set the final pressure to the back pressure
+  p[end] = pb
 
   return p
 end
@@ -203,13 +217,60 @@ end
 
 # Find area at which shock occurs
 function _shock_area(noz::Nozzle,pb::Pressure,p01::StagnationPressure;gas::PerfectGas=DefaultPerfectGas)
-  pb_crit_over_p0 = SubsonicPOverP0(exit(noz),throat(noz),Isentropic,gas=gas)
-  pb_crit = Pressure(pb_crit_over_p0*p01)
-  value(pb) < value(pb_crit) || error("Back pressure too large for a shock")
+  pb_crit = _pressure_subsonic_critical(noz,p01,gas=gas)
+  pb < pb_crit || error("Back pressure too large for a shock")
 
   return Area(find_zero(x -> value(pressure_diverging_nozzle_with_shock(exit(noz),Area(x),throat(noz),p01))-value(pb),
     (value(diverging(noz)[1]),value(diverging(noz)[end-1])),order=8))
 end
+
+function nozzle_quality(noz::Nozzle,pb::Pressure,p0::StagnationPressure;gas::PerfectGas=DefaultPerfectGas)
+  pb_subcrit = _pressure_subsonic_critical(noz,p0,gas=gas)
+  pb_supcrit_exitshock = _pressure_supersonic_shock_critical(noz,p0,gas=gas)
+  pb_supcrit = _pressure_supersonic_critical(noz,p0,gas=gas)
+  if pb > p0 || pb < 0.0
+    return "Invalid back pressure"
+  elseif pb > pb_subcrit
+    return "Unchoked subsonic"
+  elseif pb ≈ pb_subcrit
+    return "Choked subsonic"
+  elseif pb > pb_supcrit_exitshock
+    return "Supersonic with normal shock"
+  elseif pb > pb_supcrit
+    return "Overexpanded supersonic"
+  elseif pb ≈ pb_supcrit
+    return "Perfectly expanded supersonic"
+  else
+    return "Underexpanded supersonic"
+  end
+  #println(pb_supcrit)
+end
+
+#=
+function nozzle_quality(noz::Nozzle,pb::Pressure,p0::StagnationPressure;gas::PerfectGas=DefaultGasConstant)
+    pb_subcrit = _pressure_subsonic_critical(noz,p0,gas=gas)
+    pb_supcrit_exitshock = _pressure_supersonic_shock_critical(noz,p0,gas=gas)
+    pb_supcrit = _pressure_supersonic_critical(noz,p0,gas=gas)
+    nothing
+
+    if pb > p0 || pb < 0.0
+      return "Invalid back pressure"
+    elseif pb > pb_subcrit
+      return "Unchoked subsonic"
+    elseif pb ≈ pb_subcrit
+      return "Choked subsonic"
+    elseif pb > pb_supcrit_exitshock
+      return "Choked supersonic with normal shock"
+    elseif pb > pb_supcrit
+      return "Overexpanded supersonic"
+    elseif pb ≈ pb_supcrit
+      return "Perfectly expanded supersonic"
+    else
+      return "Underexpanded supersonic"
+    end
+
+end
+=#
 
 # Find critical back pressure for subsonic isentropic branch
 function _pressure_subsonic_critical(noz::Nozzle,p0::StagnationPressure;gas::PerfectGas=DefaultGasConstant)
@@ -219,9 +280,9 @@ end
 
 # Find critical back pressure for supersonic isentropic branch with shock at exit
 function _pressure_supersonic_shock_critical(noz::Nozzle,p0::StagnationPressure;gas::PerfectGas=DefaultGasConstant)
-  pe_supcrit_over_p0 = SupersonicPOverP0(exit(noz),throat(noz),Isentropic,gas=gas)
+  pe_supcrit = _pressure_supersonic_critical(noz,p0,gas=gas)
   Me_supcrit = SupersonicMachNumber(exit(noz),throat(noz),Isentropic,gas=gas)
-  pe_supcrit = Pressure(pe_supcrit_over_p0*p0)
+
   pb_over_pe_supcrit = PressureRatio(Me_supcrit,NormalShock,gas=gas)
   return Pressure(pb_over_pe_supcrit*pe_supcrit)
 end
@@ -229,6 +290,5 @@ end
 # Find critical back pressure for supersonic isentropic branch
 function _pressure_supersonic_critical(noz::Nozzle,p0::StagnationPressure;gas::PerfectGas=DefaultGasConstant)
   pe_supcrit_over_p0 = SupersonicPOverP0(exit(noz),throat(noz),Isentropic,gas=gas)
-  Me_supcrit = SupersonicMachNumber(exit(noz),throat(noz),Isentropic,gas=gas)
   return Pressure(pe_supcrit_over_p0*p0)
 end
