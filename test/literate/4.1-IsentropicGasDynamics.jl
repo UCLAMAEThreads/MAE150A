@@ -82,7 +82,7 @@ A big part of isentropic quasi-1D flow deals with changes of the flow in variabl
 ducts. For these calculations, we make use of the *sonic area* $A_*$ as a reference area.
 Remember that, for any ratio of $A/A_*$, there are two possible Mach numbers,
 corresponding to a **subsonic flow** and a **supersonic flow**. Let us see that by
-plotting $A/A_*$ versus Mach number $M$. If, for example, $A/A_* = 2, then
+plotting $A/A_*$ versus Mach number $M$. If, for example, $A/A_* = 2$, then
 note where the dashed line crosses the plot:
 =#
 Mrange = range(0,6,length=601)
