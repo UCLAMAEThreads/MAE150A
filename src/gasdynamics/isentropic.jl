@@ -15,6 +15,14 @@ function PressureRatio(Tratio::TemperatureRatio,::Type{Isentropic};gas::PerfectG
     PressureRatio(Tratio^(γ/(γ-1)))
 end
 
+function T0OverT(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
+    γ = SpecificHeatRatio(gas)
+    return TemperatureRatio(1+0.5*(γ-1)*M^2)
+end
+
+T0OverT(M::MachNumber;gas::PerfectGas=DefaultPerfectGas) = T0OverT(M,Isentropic,gas=gas)
+
+
 function P0OverP(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
     γ = SpecificHeatRatio(gas)
     Tratio = T0OverT(M,Isentropic,gas=gas)

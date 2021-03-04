@@ -126,15 +126,16 @@ end
 
 @userplot NozzlePlot
 
-@recipe function f(h::NozzlePlot;fields=())
+@recipe function f(h::NozzlePlot;fields=(),gas=DefaultPerfectGas)
   nfields = length(fields) + 1
 
   if nfields == 1
     length(h.args) == 1 || error("`nozzleplot` should be given one argument.  Got: $(typeof(h.args))")
     noz, = h.args
   else
-      length(h.args) == 3 || error("`nozzleplot` should be given three arguments.  Got: $(typeof(h.args))")
-      noz, pb, p0 = h.args
+    length(h.args) == 4 || error("`nozzleplot` should be given four arguments.  Got: $(typeof(h.args))")
+    noz, pb, p0, T0 = h.args
+    nozproc = NozzleProcess(noz,pb,p0,T0,gas=gas)
   end
 
   layout := (nfields,1)
@@ -149,7 +150,7 @@ end
   if in("pressure",fields_lower)
     subnum += 1
 
-    p = value.(pressure_nozzle(noz,pb,p0),KPa)
+    p = value.(pressure(nozproc),KPa)
     pmax = maximum(p)+50
     @series begin
       subplot := subnum
@@ -167,10 +168,52 @@ end
     end
   end
 
+  if in("temperature",fields_lower)
+    subnum += 1
+
+    T = value.(temperature(nozproc),K)
+    Tmax = maximum(T)+100.0
+    @series begin
+      subplot := subnum
+      linestyle --> :dash
+      linecolor --> :black
+      xline, [0,Tmax]
+    end
+    @series begin
+      subplot := subnum
+
+      ylims --> (0,Tmax)
+      xlims := (-Inf,Inf)
+      yguide := "Temperature (K)"
+      positions(noz), T
+    end
+  end
+
+  if in("density",fields_lower)
+    subnum += 1
+
+    ρ = value.(density(nozproc))
+    ρmax = maximum(ρ)+1.0
+    @series begin
+      subplot := subnum
+      linestyle --> :dash
+      linecolor --> :black
+      xline, [0,ρmax]
+    end
+    @series begin
+      subplot := subnum
+
+      ylims --> (0,ρmax)
+      xlims := (-Inf,Inf)
+      yguide := "Density (kg/m3)"
+      positions(noz), ρ
+    end
+  end
+
   if in("machnumber",fields_lower) || in("mach",fields_lower)
     subnum += 1
 
-    M = value.(machnumber_nozzle(noz,pb,p0))
+    M = value.(machnumber(nozproc))
     Mmax = maximum(M)+1.0
     @series begin
       subplot := subnum

@@ -55,12 +55,3 @@ SoundSpeed(u::Velocity,M::MachNumber) = SoundSpeed(u/M)
 
 # mass flow rate
 MassFlowRate(ρ::Density,u::Velocity,A::Area) = MassFlowRate(ρ*u*A)
-
-
-
-function T0OverT(M::MachNumber,::Type{Isentropic};gas::PerfectGas=DefaultPerfectGas)
-    γ = SpecificHeatRatio(gas)
-    return TemperatureRatio(1+0.5*(γ-1)*M^2)
-end
-
-T0OverT(M::MachNumber;gas::PerfectGas=DefaultPerfectGas) = T0OverT(M,Isentropic,gas=gas)
