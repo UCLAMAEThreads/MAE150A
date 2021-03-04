@@ -97,9 +97,22 @@ We can classify the type of flow with the `flow_quality` function:
 =#
 nozproc = NozzleProcess(noz,Pressure(600,units=KPa),p0,T0)
 flow_quality(nozproc)
-#-
+# There is a normal shock in the diverging section
 nozproc = NozzleProcess(noz,Pressure(100,units=KPa),p0,T0)
 flow_quality(nozproc)
-#-
+# This is over-expanded: the exit pressure is too small and the flow needs to pass
+# through shocks outside the nozzle to get up to the back pressure.
 nozproc = NozzleProcess(noz,Pressure(60,units=KPa),p0,T0)
 flow_quality(nozproc)
+# This is under-expanded: the exit pressure is not low enough and the flow needs
+# to pass through an *expansion fan* outside the nozzle to lower its pressure
+# further to get down to the back pressure.
+
+#=
+When we seek to generate a supersonic exit flow, as is often the case,
+then our goal is to design it so that the flow is *perfectly expanded*.
+We can find the required back pressure easily, using isentropic relations:
+=#
+Ae = nozzleexit(noz)
+Astar = throat(noz)
+pb = Pressure(SupersonicPOverP0(Ae,Astar,Isentropic)*p0,units=KPa)

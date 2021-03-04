@@ -1,5 +1,5 @@
 # Converging-diverging nozzles
-export Nozzle, areas, positions, converging, diverging, throat,
+export Nozzle, areas, positions, converging, diverging, throat, nozzleexit,
        machnumber,temperature, density, massflowrate, flow_quality, NozzleProcess
 
 abstract type NozzleQuality end
@@ -38,7 +38,7 @@ end
 areas(n::Nozzle) = n.areas
 positions(n::Nozzle) = n.x
 throat(n::Nozzle) = n.At
-exit(n::Nozzle) = n.Ae
+nozzleexit(n::Nozzle) = n.Ae
 inlet(n::Nozzle) = n.Ai
 converging(n::Nozzle) = view(areas(n),1:n.throat_index)
 diverging(n::Nozzle) = view(areas(n),n.throat_index+1:length(areas(n)))
@@ -47,7 +47,7 @@ function Base.show(io::IO, noz::Nozzle)
   println(io, "Converging-diverging nozzle")
   println(io, "   Inlet area (sq cm)= "*string(value(inlet(noz),SqCM)))
   println(io, "   Throat area (sq cm)= "*string(value(throat(noz),SqCM)))
-  println(io, "   Exit area (sq cm)= "*string(value(exit(noz),SqCM)))
+  println(io, "   Exit area (sq cm)= "*string(value(nozzleexit(noz),SqCM)))
 end
 
 # Shaping of nozzle cross-section
@@ -94,7 +94,7 @@ function Base.show(io::IO, nozproc::NozzleProcess)
   println(io, "Flow in a converging-diverging nozzle")
   println(io, "   Inlet area (sq cm)= "*string(value(inlet(nozproc.noz),SqCM)))
   println(io, "   Throat area (sq cm)= "*string(value(throat(nozproc.noz),SqCM)))
-  println(io, "   Exit area (sq cm)= "*string(value(exit(nozproc.noz),SqCM)))
+  println(io, "   Exit area (sq cm)= "*string(value(nozzleexit(nozproc.noz),SqCM)))
   println(io, "   Stagnation pressure (KPa) = "*string(value(nozproc.p0,KPa)))
   println(io, "   Stagnation temperature (K) = "*string(value(nozproc.T0,K)))
   println(io, "   Subsonic choked isentropic (KPa) = "*string(value(nozproc.pb_subcrit,KPa)))
@@ -331,7 +331,7 @@ function _shock_area(noz::Nozzle,pb::Pressure,p01::StagnationPressure,::Type{Sup
   pb_crit = _pressure_subsonic_critical(noz,p01,gas)
   pb < pb_crit || error("Back pressure too large for a shock")
 
-  return Area(find_zero(x -> value(_pressure_diverging_nozzle_with_shock(exit(noz),Area(x),throat(noz),p01,gas))-value(pb),
+  return Area(find_zero(x -> value(_pressure_diverging_nozzle_with_shock(nozzleexit(noz),Area(x),throat(noz),p01,gas))-value(pb),
     (value(diverging(noz)[1]),value(diverging(noz)[end-1])),order=8))
 end
 
@@ -366,14 +366,14 @@ end
 
 # Find critical back pressure for subsonic isentropic branch
 function _pressure_subsonic_critical(noz::Nozzle,p0::StagnationPressure,gas::PerfectGas)
-  pb_crit_over_p0 = SubsonicPOverP0(exit(noz),throat(noz),Isentropic,gas=gas)
+  pb_crit_over_p0 = SubsonicPOverP0(nozzleexit(noz),throat(noz),Isentropic,gas=gas)
   return Pressure(pb_crit_over_p0*p0)
 end
 
 # Find critical back pressure for supersonic isentropic branch with shock at exit
 function _pressure_supersonic_shock_critical(noz::Nozzle,p0::StagnationPressure,gas::PerfectGas)
   pe_supcrit = _pressure_supersonic_critical(noz,p0,gas)
-  Me_supcrit = SupersonicMachNumber(exit(noz),throat(noz),Isentropic,gas=gas)
+  Me_supcrit = SupersonicMachNumber(nozzleexit(noz),throat(noz),Isentropic,gas=gas)
 
   pb_over_pe_supcrit = PressureRatio(Me_supcrit,NormalShock,gas=gas)
   return Pressure(pb_over_pe_supcrit*pe_supcrit)
@@ -381,6 +381,6 @@ end
 
 # Find critical back pressure for supersonic isentropic branch
 function _pressure_supersonic_critical(noz::Nozzle,p0::StagnationPressure,gas::PerfectGas)
-  pe_supcrit_over_p0 = SupersonicPOverP0(exit(noz),throat(noz),Isentropic,gas=gas)
+  pe_supcrit_over_p0 = SupersonicPOverP0(nozzleexit(noz),throat(noz),Isentropic,gas=gas)
   return Pressure(pe_supcrit_over_p0*p0)
 end

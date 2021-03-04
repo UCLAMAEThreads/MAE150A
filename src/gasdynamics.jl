@@ -34,6 +34,7 @@ export Air, He, O2,CO2,H2,N2
 export ThermodynamicStateVar, Pressure, Temperature, Density, Enthalpy, InternalEnergy, SoundSpeed
 export Area, MachNumber, Entropy, MassFlowRate,Velocity,Length, Diameter
 export SubsonicMachNumber,SupersonicMachNumber
+export SubsonicPOverP0,SupersonicPOverP0
 export AreaRatio, FrictionFactor, FLOverD, HeatFlux
 export StagnationPressure, StagnationDensity, StagnationEnthalpy,StagnationTemperature
 export StagnationPressureRatio, PressureRatio, DensityRatio, TemperatureRatio
