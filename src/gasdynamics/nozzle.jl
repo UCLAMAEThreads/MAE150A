@@ -1,6 +1,6 @@
 # Converging-diverging nozzles
 export Nozzle, areas, positions, converging, diverging, throat,
-       machnumber,temperature, density, nozzle_quality, NozzleProcess
+       machnumber,temperature, density, massflowrate, flow_quality, NozzleProcess
 
 abstract type NozzleQuality end
 abstract type SubsonicIsentropicNozzle <: NozzleQuality end
@@ -64,6 +64,9 @@ struct NozzleProcess{process_type,T,S,PU,PSU,PTU,G}
   M :: Vector{MachNumber{Dimensionless}}
   p0 :: StagnationPressure{PSU}
   T0 :: StagnationTemperature{PTU}
+  pb_subcrit :: Pressure{PU}
+  pb_supcrit_exitshock :: Pressure{PU}
+  pb_supcrit :: Pressure{PU}
   pb :: Pressure{PU}
   As :: T
   gas :: G
@@ -72,17 +75,19 @@ end
 
 function NozzleProcess(noz::Nozzle{T,S},pb::Pressure{PU},p0::StagnationPressure{PSU},T0::StagnationTemperature{PTU};gas::PerfectGas=DefaultPerfectGas) where {T,S,PU,PSU,PTU}
   pb_subcrit = _pressure_subsonic_critical(noz,p0,gas)
-  pb_supcrit = _pressure_supersonic_shock_critical(noz,p0,gas)
+  pb_supcrit_exitshock = _pressure_supersonic_shock_critical(noz,p0,gas)
+  pb_supcrit = _pressure_supersonic_critical(noz,p0,gas)
 
   process_type = pb > pb_subcrit ? SubsonicIsentropicNozzle :
-                (pb > pb_supcrit ? SupersonicWithShockNozzle :
-                                   SupersonicIsentropicNozzle)
+                (pb > pb_supcrit_exitshock ? SupersonicWithShockNozzle :
+                                             SupersonicIsentropicNozzle)
 
   As = _shock_area(noz,pb,p0,process_type,gas)
   p = pressure_nozzle(noz,pb,p0,As,process_type,gas)
   M = machnumber_nozzle(noz,pb,p0,As,process_type,gas)
 
-  NozzleProcess{process_type,T,S,PU,PSU,PTU,typeof(gas)}(noz,p,M,p0,T0,pb,As,gas)
+  NozzleProcess{process_type,T,S,PU,PSU,PTU,typeof(gas)}(noz,p,M,p0,T0,
+                  pb_subcrit,pb_supcrit_exitshock,pb_supcrit, pb,As,gas)
 end
 
 function Base.show(io::IO, nozproc::NozzleProcess)
@@ -92,8 +97,10 @@ function Base.show(io::IO, nozproc::NozzleProcess)
   println(io, "   Exit area (sq cm)= "*string(value(exit(nozproc.noz),SqCM)))
   println(io, "   Stagnation pressure (KPa) = "*string(value(nozproc.p0,KPa)))
   println(io, "   Stagnation temperature (K) = "*string(value(nozproc.T0,K)))
+  println(io, "   Subsonic choked isentropic (KPa) = "*string(value(nozproc.pb_subcrit,KPa)))
+  println(io, "   Supersonic choked isentropic (KPa) = "*string(value(nozproc.pb_supcrit,KPa)))
   println(io, "   Back pressure (KPa) = "*string(value(nozproc.pb,KPa)))
-  println(io, "   Behavior --> "*nozzle_quality(nozproc))
+  println(io, "   Behavior --> "*flow_quality(nozproc))
 end
 
 machnumber(np::NozzleProcess) = np.M
@@ -116,6 +123,18 @@ function density(np::NozzleProcess{PT,T,S,PU,PSU,PTU}) where {PT,T,S,PU,PSU,PTU}
         push!(ρ,Density(pi,Ti,gas=np.gas))
     end
     ρ
+end
+
+function massflowrate(np::NozzleProcess{PT,T,S,PU,PSU,PTU}) where {PT,T,S,PU,PSU,PTU}
+    idx = np.noz.throat_index
+    Mt = machnumber(np)[idx]
+    pt = pressure(np)[idx]
+    T0_over_T = T0OverT(Mt,Isentropic,gas=np.gas)
+    Tt = Temperature(np.T0/T0_over_T)
+    at = SoundSpeed(Tt,gas=np.gas)
+    ut = Velocity(at,Mt)
+    ρt = Density(pt,Tt,gas=np.gas)
+    MassFlowRate(ρt,ut,throat(np.noz))
 end
 
 # ---------------
@@ -320,9 +339,9 @@ _shock_area(noz::Nozzle,pb,p01,::Type{SubsonicIsentropicNozzle},gas::PerfectGas)
 _shock_area(noz::Nozzle,pb,p01,::Type{SupersonicIsentropicNozzle},gas::PerfectGas) = throat(noz)
 
 
-nozzle_quality(nozproc::NozzleProcess) = nozzle_quality(nozproc.noz,nozproc.pb,nozproc.p0,gas=nozproc.gas)
+flow_quality(nozproc::NozzleProcess) = flow_quality(nozproc.noz,nozproc.pb,nozproc.p0,gas=nozproc.gas)
 
-function nozzle_quality(noz::Nozzle,pb::Pressure,p0::StagnationPressure;gas::PerfectGas=DefaultPerfectGas)
+function flow_quality(noz::Nozzle,pb::Pressure,p0::StagnationPressure;gas::PerfectGas=DefaultPerfectGas)
   pb_subcrit = _pressure_subsonic_critical(noz,p0,gas)
   pb_supcrit_exitshock = _pressure_supersonic_shock_critical(noz,p0,gas)
   pb_supcrit = _pressure_supersonic_critical(noz,p0,gas)

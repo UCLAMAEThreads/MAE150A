@@ -1,6 +1,6 @@
 using RecipesBase
 using ColorTypes
-import PlotUtils: cgrad
+import PlotUtils: cgrad, palette, color_list
 using LaTeXStrings
 
 @userplot Trajectories
@@ -138,6 +138,13 @@ end
     nozproc = NozzleProcess(noz,pb,p0,T0,gas=gas)
   end
 
+  linecolor := 1
+  if plotattributes[:plot_object].n > 0
+    lc = plotattributes[:plot_object].series_list[end][:linecolor]
+    idx = findall(x -> RGBA(x) == lc,color_list(palette(:default)))
+    linecolor := idx[1] + 1
+  end
+
   layout := (nfields,1)
   size := (500,200*nfields)
   xticks := (0:0,["Throat"])
@@ -155,7 +162,8 @@ end
     @series begin
       subplot := subnum
       linestyle --> :dash
-      linecolor --> :black
+      linecolor := :black
+      #label := ""
       xline, [0,pmax]
     end
     @series begin
@@ -163,6 +171,7 @@ end
       ylims --> (0,pmax)
       xlims := (-Inf,Inf)
       yguide := "Pressure (KPa)"
+      #legend := true
       #annotations := (positions(noz)[end],p[end],nozzle_quality(noz,pb,p0))
       positions(noz), p
     end
@@ -176,7 +185,7 @@ end
     @series begin
       subplot := subnum
       linestyle --> :dash
-      linecolor --> :black
+      linecolor := :black
       xline, [0,Tmax]
     end
     @series begin
@@ -197,7 +206,7 @@ end
     @series begin
       subplot := subnum
       linestyle --> :dash
-      linecolor --> :black
+      linecolor := :black
       xline, [0,ρmax]
     end
     @series begin
@@ -218,8 +227,14 @@ end
     @series begin
       subplot := subnum
       linestyle --> :dash
-      linecolor --> :black
+      linecolor := :black
       xline, [0,Mmax]
+    end
+    @series begin
+      subplot := subnum
+      linestyle --> :dash
+      linecolor := :black
+      positions(noz), ones(length(positions(noz)))
     end
     @series begin
       subplot := subnum
@@ -237,16 +252,17 @@ end
   @series begin
     subplot := subnum
     linestyle --> :dash
-    linecolor --> :black
+    linecolor := :black
     xline, [0,Amax]
   end
-  @series begin
+  #@series begin
      subplot := subnum
 
      ylims --> (0,Amax)
      xlims := (-Inf,Inf)
+
      yguide := "Area (sq cm)"
      positions(noz),A
-  end
+  #end
 
 end
