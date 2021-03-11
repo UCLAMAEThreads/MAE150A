@@ -12,11 +12,6 @@ using MAE150A
 using Plots
 
 #=
-# Steady flow through a duct with heat transfer
-This notebook demonstrates the use of tools for computing steady compressible flow
-through a constant-area duct with heat transfer, commonly known as **Rayleigh flow**.
-=#
-#=
 #### Simple example
 In a duct with helium, if the flow enters with stagnation temperature of 20 degrees C,
 how much does the stagnation temperature change if we add heat 400 kJ/kg?
@@ -90,6 +85,7 @@ Suppose the flow of air in a duct enters with velocity 75 m/s at a pressure of
 
 (c) The maximum amount of heat we can add so that the flow is just choked
 =#
+
 # Set the given values
 u1 = Velocity(75)
 p1 = Pressure(150,units=KPa)
