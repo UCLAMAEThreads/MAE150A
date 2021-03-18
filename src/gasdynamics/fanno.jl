@@ -6,22 +6,32 @@ function FLStarOverD(M::MachNumber,::Type{FannoFlow};gas::PerfectGas=DefaultPerf
   return FLOverD((1-M^2)/(γ*M^2) + (γ+1)/(2γ)*log((γ+1)*M^2/(2+(γ-1)*M^2)))
 end
 
-function MachNumber(fL_over_D::FLOverD,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
-    Msub = find_zero(x -> FLStarOverD(MachNumber(x),FannoFlow,gas=gas)-fL_over_D,(0.001,1),order=16)
-    max_fLD = FLStarOverD(MachNumber(1e10),FannoFlow,gas=gas)
-
-    if value(fL_over_D) > value(max_fLD)
-        return MachNumber(Msub)
-    else
-        Msup = find_zero(x -> FLStarOverD(MachNumber(x),FannoFlow,gas=gas)-fL_over_D,(1,1e10),order=16)
-        return MachNumber(Msub), MachNumber(Msup)
-    end
+function SubsonicMachNumber(fL_over_D::FLOverD,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
+  value(fL_over_D) >= 0.0 || error("fL*/D must be positive")
+  MachNumber(_subsonic_mach_number_fanno(fL_over_D,gas))
 end
+
+
+function SupersonicMachNumber(fL_over_D::FLOverD,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
+  max_fLD = FLStarOverD(MachNumber(1e10),FannoFlow,gas=gas)
+  value(fL_over_D) >= 0.0 || error("fL*/D must be positive")
+  value(fL_over_D) > value(max_fLD) ? MachNumber(NaN) : MachNumber(_supersonic_mach_number_fanno(fL_over_D,gas))
+end
+
+function MachNumber(fL_over_D::FLOverD,::Type{FannoFlow};gas::PerfectGas=DefaultPerfectGas)
+    SubsonicMachNumber(fL_over_D,FannoFlow,gas=gas), SupersonicMachNumber(fL_over_D,FannoFlow,gas=gas)
+end
+
+_subsonic_mach_number_fanno(fL_over_D::FLOverD,gas::PerfectGas) =
+      find_zero(x -> FLStarOverD(MachNumber(x),FannoFlow,gas=gas)-fL_over_D,(0.001,1),order=16)
+
+_supersonic_mach_number_fanno(fL_over_D::FLOverD,gas::PerfectGas) =
+      find_zero(x -> FLStarOverD(MachNumber(x),FannoFlow,gas=gas)-fL_over_D,(1,1e10),order=16)
+
+
 
 FLOverD(f::FrictionFactor,L::Length,D::Diameter) = FLOverD(f*L/D)
 Length(fLoverD::FLOverD,D::Diameter,f::FrictionFactor) = Length(fLoverD*D/f)
-
-
 
 
 
