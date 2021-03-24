@@ -123,7 +123,7 @@ the conditions at the entrance must adjust accordingly. First find the Mach numb
 =#
 Lstar = L = Length(30)
 fLstar_over_D = FLOverD(f*Lstar/D)
-M1 = MachNumber(fLstar_over_D,FannoFlow)
+M1 = SubsonicMachNumber(fLstar_over_D,FannoFlow)
 
 #=
 Note that the entrance Mach number is lower. The flow slows down due to the longer pipe.
