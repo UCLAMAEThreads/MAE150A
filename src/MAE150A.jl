@@ -214,7 +214,6 @@ module MAE150A
 
  include("boundarylayers.jl")
  include("trajectories.jl")
- include("gasdynamics.jl")
 
 
 end

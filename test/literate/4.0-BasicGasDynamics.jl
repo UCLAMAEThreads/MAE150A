@@ -9,7 +9,7 @@ quasi-1d steady compressible flow.
 # ### Set up the module
 using MAE150A
 #-
-using Plots
+using Gasdynamics1D
 
 #=
 ### Setting basic properties and states
@@ -19,50 +19,39 @@ type of property or state we are setting. Examples below will show how this work
 =#
 
 #=
-#### Units
-When we set a thermodynamic quantity, we also need to set its **units**. For every
-quantity, we have a few units to choose from. For example:
+Let's say we wish to set the pressure to 10000 Pa. Pascals are the default units
+of pressure, as can be verified by using the `default_unit` function:
 =#
-PressureUnits
+default_unit(Pressure)
 
 #=
-Among these, one is designated the default unit (the SI unit of that quantity).
-All quantities are converted to this unit for calculation purposes. For example,
-for pressure:
-=#
-default_unit(PressureUnits)
-
-#=
-or enthalpy:
-=#
-default_unit(EnthalpyUnits)
-
-#=
-If we do not specify the unit, it is **automatically set to the default unit**:
+So if we do not specify the unit, it is **automatically set to the default unit**:
 =#
 Pressure(10000)
 
+
 #=
-If we set the pressure in another unit, it will still convert it to the default
-unit for us. This ensures that all calculations are carried out in standardized fashion.
+We can set a quantity with another unit using the syntax u"[unit]". For example,
+if we set pressure to 1 atm, it will still convert it to the default
+unit.
 =#
-p = Pressure(1,units=atm)
+p = Pressure(1u"atm")
 
 #=
 However, we can always report the quantity in some desired units with the `value`
 function:
 =#
-value(p,atm)
+value(p,u"atm")
 #-
-value(p,psi)
+value(p,u"psi")
 #-
-value(p,KPa)
+value(p,u"kPa")
 
 #=
 #### Other thermodynamic quantities
 We can set most any other thermodynamic quantity in similar fashion:
 =#
-T = Temperature(20,units=Celsius)
+T = Temperature(20u"°C")
 #-
 T0 = StagnationTemperature(20)
 #-
@@ -72,7 +61,7 @@ Enthalpy(50)
 #-
 Entropy(10)
 #-
-Area(50,units=SqCM)
+Area(50u"cm^2")
 #-
 Length(5)
 #=
@@ -107,17 +96,19 @@ CO2
 H2
 #-
 N2
+#-
+Ar
 #=
 #### Equations of state
 We can apply the equation of state for a perfect gas to determine other quantities.
-For example, suppose we have carbon dioxide at 1.2 kg/m^3 and 80 KPa. What is the temperature?
+For example, suppose we have carbon dioxide at 1.2 kg/m^3 and 80 kPa. What is the temperature?
 =#
-T = Temperature(Density(1.2),Pressure(80,units=KPa),gas=CO2)
+T = Temperature(Density(1.2),Pressure(80u"kPa"),gas=CO2)
 
 #=
 You can switch the order of the arguments and it will still work:
 =#
-T = Temperature(Pressure(80,units=KPa),Density(1.2),gas=CO2)
+T = Temperature(Pressure(80u"kPa"),Density(1.2),gas=CO2)
 
 #=
 Then we can calculate the enthalpy, for example:
@@ -127,12 +118,12 @@ Enthalpy(T,gas=CO2)
 #=
 What is the speed of sound of air at 20 degrees Celsius? Let's find out:
 =#
-SoundSpeed(Temperature(20,units=C),gas=Air)
+SoundSpeed(Temperature(20u"°C"),gas=Air)
 
 #=
 How about oxygen?
 =#
-SoundSpeed(Temperature(20,units=C),gas=O2)
+SoundSpeed(Temperature(20u"°C"),gas=O2)
 
 #=
 **Note: the default gas is air. So if you do not put the `gas=` argument in,
