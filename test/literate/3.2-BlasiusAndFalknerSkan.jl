@@ -7,7 +7,7 @@ This notebook focuses on the solution of the boundary layer equations when the
 external velocity outside the boundary layer has the form of flow past a wedge,
 as in the diagram below:
 
-<img src="https://raw.githubusercontent.com/jdeldre/MAE150A/master/notebook/WedgeDiagram.svg" alt="wedge diagram" width="600" align="left"/>
+<img src="https://raw.githubusercontent.com/UCLAMAEThreads/MAE150A/master/notebook/WedgeDiagram.svg" alt="wedge diagram" width="600" align="left"/>
 =#
 
 #=
