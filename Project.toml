@@ -33,7 +33,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 ViscousFlow = "103da179-b3e4-57c1-99a4-586354eb2c5a"
 
 [compat]
-ColorTypes = "0.10.9"
+ColorTypes = "0.10.9, 0.11"
 Conda = "1.5.0"
 Dierckx = "0.5.1"
 HDF5 = "0.14, 0.15"
