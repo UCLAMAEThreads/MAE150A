@@ -25,7 +25,7 @@ Ae = Area(60u"cm^2")
 noz = Nozzle(Ai,At,Ae)
 
 
-# Let's plot this nozzle to see it's shape
+# Let's plot this nozzle to see its shape
 nozzleplot(noz)
 
 #=
