@@ -10,7 +10,7 @@ module MAE150A
 
 
   using Interpolations
-  using JLD
+  using JLD2
   using Requires
   @reexport using RecursiveArrayTools
   using Dierckx
@@ -81,11 +81,9 @@ module MAE150A
     end
 
     @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
-      import ViscousFlow: Edges, NavierStokes, interpolatable_field, GridData,
-                        VectorGridData, ScalarGridData, limits, cellsize
 
       include("viscousflow/fileio.jl")
-      include("viscousflow/trajectories.jl")
+      #include("viscousflow/trajectories.jl")
     end
 
     @require PotentialFlow="73af2aaf-3f58-5b29-82a9-435ecf827f5b" begin

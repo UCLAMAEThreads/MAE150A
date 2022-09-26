@@ -1,20 +1,18 @@
 """
     save_ns_solution(filen::String,integrator)
 
-Save a state of the Navier-Stokes solution in a file with the provided
+Save a state of the solution in a file with the provided
 filename `filen`.
 """
 function save_ns_solution(filen,integrator)
 
     sys = integrator.p
-    save(filen,"Re",sys.Re,"freestream",sys.U∞,"Δt",sys.Δt,"grid",sys.grid,
-              "bodies",sys.bodies,"motions",sys.motions,
-               "u",integrator.u,"t",integrator.t,"motiontype",motiontype(sys))
+    save(filen,"u",integrator.u,
+               "t",integrator.t,
+               "prob",ViscousFlow.ImmersedLayers.regenerate_problem(sys,sys.base_cache.bl))
     return nothing
 
 end
-
-motiontype(sys::NavierStokes{NX, NY, N, MT}) where {NX,NY,N,MT} = MT
 
 """
       load_ns_solution(filen::String)
@@ -23,7 +21,7 @@ motiontype(sys::NavierStokes{NX, NY, N, MT}) where {NX,NY,N,MT} = MT
   stored in this file and set up various solution variables. An example:
 
   ```
-  u, t, sys = load_ns_solution("myfile.jld")
+  u, t, sys = load_ns_solution("myfile.jld2")
   ```
 
   In this example, `u` is the flow state vector, `t` the time, `sys` is the NS system
@@ -32,24 +30,9 @@ motiontype(sys::NavierStokes{NX, NY, N, MT}) where {NX,NY,N,MT} = MT
 function load_ns_solution(filen)
 
   d = load(filen)
-
-  bodies = d["bodies"]
-  motions = d["motions"]
-  g = d["grid"]
-  Δt = d["Δt"]
-  U∞ = d["freestream"]
-  Re = d["Re"]
   u = d["u"]
   t = d["t"]
-  motiontype = d["motiontype"]
-
-  sp = motiontype == ViscousFlow.StaticPoints ? true : false
-
-  xlim = round.(limits(g,1),digits=15)
-  ylim = round.(limits(g,2),digits=15)
-
-  sys = NavierStokes(Re,cellsize(g),xlim,ylim,Δt,bodies,motions,
-  freestream = U∞,static_points=sp)
+  sys = ViscousFlow.ImmersedLayers.construct_system(d["prob"])
 
   return u, t, sys
 end
