@@ -87,7 +87,7 @@ end
     Xr,Yr
   end
 
-  if typeof(field) <: VectorGridData
+  if typeof(field) <: ViscousFlow.VectorGridData
     utraj,vtraj = field_along_trajectory(field,sys,traj,deriv=deriv)
     minuv = min(minimum(utraj),minimum(vtraj)) - 0.5
     maxuv = max(maximum(utraj),maximum(vtraj)) + 0.5
@@ -108,7 +108,7 @@ end
       ylims := (minuv,maxuv)
       xtraj, vtraj
     end
-  elseif typeof(field) <: ScalarGridData
+  elseif typeof(field) <: ViscousFlow.ScalarGridData
     straj = field_along_trajectory(field,sys,traj,deriv=deriv)
 
     @series begin

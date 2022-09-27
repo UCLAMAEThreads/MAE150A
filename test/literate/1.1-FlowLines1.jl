@@ -16,6 +16,7 @@ using MAE150A
 using ViscousFlow
 #-
 using Plots
+Plots.gr()
 
 #=
 ### Load the flow from file
@@ -76,13 +77,13 @@ Each particle corresponds to a different initial condition.
 Initial locations of the particles. Each pair is the initial coordinates of a particle. You can (and should) play
 around with these, add more particles, etc.
 =#
-pts = [ [-1,0.25], [-1,0], [-1,-0.025], [-1,-0.05], [-1,-0.25],[-1,-0.5],  [-1,-0.75] ];
+pts = [ [-1,0.25], [-1,0.015], [-1,-0.015], [-1,-0.03], [-1,-0.25],[-1,-0.5],  [-1,-0.75] ];
 
 #=
 Time range over which to compute the trajectory (from t = 0 to t = Tmax). You might need to change this to
 make the trajectories go far enough.
 =#
-Tmax = 10.0;
+Tmax = 25.0;
 
 #=
 Compute the trajectories.

@@ -23,7 +23,7 @@ is `deriv=0` (no derivative).
 field_along_trajectory(d::ViscousFlow.GridData,sys,traj;deriv=0) = _field_along_trajectory(d,sys,traj,Val(deriv))
 
 function _field_along_trajectory(v::ViscousFlow.VectorGridData,sys::ViscousFlow.ILMSystem,traj::ODESolution,::Val{0})
- vfield_x, vfield_y = ViscousFlow.interpolatable_field(v,sys.base_cache.grid)
+ vfield_x, vfield_y = ViscousFlow.interpolatable_field(v,sys.base_cache.g)
 
  vx_traj = eltype(v)[]
  vy_traj = eltype(v)[]
@@ -36,7 +36,7 @@ function _field_along_trajectory(v::ViscousFlow.VectorGridData,sys::ViscousFlow.
 end
 
 function _field_along_trajectory(s::ViscousFlow.ScalarGridData,sys::ViscousFlow.ILMSystem,traj::ODESolution,::Val{0})
- sfield = ViscousFlow.interpolatable_field(s,sys.base_cache.grid)
+ sfield = ViscousFlow.interpolatable_field(s,sys.base_cache.g)
 
  s_traj = eltype(sfield)[]
  for x in traj.u
