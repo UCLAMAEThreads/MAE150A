@@ -12,7 +12,7 @@ using LaTeXStrings
   traj_array, sys = h.args
 
   @series begin
-    sys.bodies
+    sys.base_cache.bl
   end
 
   for traj in traj_array
@@ -29,7 +29,7 @@ using LaTeXStrings
     yguide := L"y"
     title := "Particle trajectories"
     aspect_ratio := 1
-    size --> (800,400)
+    size --> (700,400)
     ()
   end
 
@@ -48,7 +48,7 @@ end
   xtraj = traj[1,:]
   ytraj = traj[2,:]
 
-  body = sys.bodies[1]
+  body = sys.base_cache.bl[1]
 
   layout := (2,1)
   size --> (600,600)

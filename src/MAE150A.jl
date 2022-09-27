@@ -83,7 +83,7 @@ module MAE150A
     @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
 
       include("viscousflow/fileio.jl")
-      #include("viscousflow/trajectories.jl")
+      include("viscousflow/trajectories.jl")
     end
 
     @require PotentialFlow="73af2aaf-3f58-5b29-82a9-435ecf827f5b" begin
