@@ -4,7 +4,7 @@ This repository is designed for MAE 150A Intermediate Fluid Mechanics at UCLA.
 
 | Build Status | Binder Site |
 |:---:|:---:|
-[![Build Status](https://github.com/UCLAMAEThreads/MAE150A/actions/workflows/CI.yml/badge.svg)](https://github.com/UCLAMAEThreads/MAE150A/actions/workflows/CI.yml)
+[![Build Status](https://github.com/UCLAMAEThreads/MAE150A/actions/workflows/CI.yml/badge.svg)](https://github.com/UCLAMAEThreads/MAE150A/actions/workflows/CI.yml) | 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/UCLAMAEThreads/MAE150A/HEAD)
 
 
