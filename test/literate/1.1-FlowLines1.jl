@@ -16,7 +16,6 @@ using MAE150A
 using ViscousFlow
 #-
 using Plots
-Plots.gr()
 
 #=
 ### Load the flow from file
@@ -30,7 +29,7 @@ important in this problem, since it is steady), and `sys` contains some operator
 getting other information about the flow. It takes a few seconds for this to do its work,
 so be patient:
 =#
-filename = "NACA4415Re500.jld"
+filename = "NACA4415Re500.jld2"
 u, t, sys = load_ns_solution(filename);
 
 #=
@@ -183,7 +182,7 @@ fieldtrajectory(traj,vel,sys,fieldlabel="Acceleration",deriv=1)
 Now let's compute the convective acceleration field, $\mathbf{u}\cdot\nabla\mathbf{u}$,
 and evaluate it along the particle's trajectory.
 =#
-ugradu = convective_derivative(vel,sys,t);
+ugradu = ViscousFlow.convective_acceleration(u,sys,t);
 
 #=
 Plot the acceleration components. We will compare the particle's acceleration,
