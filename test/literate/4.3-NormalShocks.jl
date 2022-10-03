@@ -9,6 +9,7 @@ for dealing with **normal shock waves**.
 
 # ### Set up the module
 using MAE150A
+using Gasdynamics1D
 #-
 using Plots
 
@@ -31,35 +32,35 @@ M1 = range(1,3,length=101)
 s2 = []
 pratio = []
 for M in M1
-    push!(s2,value(Entropy(Entropy(0),MachNumber(M),NormalShock)))
-    push!(pratio,value(PressureRatio(MachNumber(M),NormalShock)))
+    push!(s2,ustrip(Entropy(Entropy(0),MachNumber(M),NormalShock)))
+    push!(pratio,ustrip(PressureRatio(MachNumber(M),NormalShock)))
 end
 #-
 plot(M1,s2,xlim=(1,3),ylim=(0,400),xlabel="Mach number",ylabel="Entropy increase (J/kgK)")
 # Not surprisingly, the entropy jump gets bigger as the Mach number increases
 
 #=
-### Example 8.6 in Wilcox
+### Example 1
 For air entering a shock at Mach number 3, 1 atm, and 50 degrees F, what are the
 Mach number, pressure, and temperature on the other side of the shock?
 =#
-p1 = Pressure(1,units=atm)
+p1 = Pressure(1u"atm")
 M1 = MachNumber(3)
-T1 = Temperature(50,units=F)
+T1 = Temperature(50u"°F")
 
 # The Mach number exiting the shock is
 M2 = MachNumber(M1,NormalShock)
 
 # Pressure exiting the shock (in atm) is
 p2 = Pressure(p1*PressureRatio(M1,NormalShock))
-value(p2,atm)
+value(p2,u"atm")
 
 # and the temperature exiting the shock (in F) is
 T2 = Temperature(T1*TemperatureRatio(M1,NormalShock))
-value(T2,F)
+value(T2,u"°F")
 
 #=
-### Example 8.9 in Wilcox
+### Example 2
 A blow-down supersonic windtunnel is supplied with air from a large reservoir.
 A Pitot tube is placed at the exit plane of a converging-diverging nozzle. The test
 section lies at the end of the diverging section. The Mach number in the test
@@ -70,7 +71,7 @@ the shock (M3), the pressure at the Pitot tube (p4), and the temperature at the 
  tube (T4).
 =#
 M2 = MachNumber(2)
-p3 = Pressure(14.7,units=psi)
+p3 = Pressure(14.7u"psi")
 
 #=
 First, let's find the pressure just before the shock and the Mach number
@@ -114,4 +115,4 @@ stagnation pressure at point 3 (just after the shock):
 =#
 p03 = Pressure(p03_over_p02*p02)
 #-
-value(p03,psi)
+value(p03,u"psi")

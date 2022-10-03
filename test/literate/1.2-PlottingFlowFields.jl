@@ -75,7 +75,7 @@ We will use the flow from the same pre-computed CFD solution we used in the prev
 This is the steady state flow past a NACA 4415 airfoil at 5 degrees angle of attack at Reynolds
 number 500.
 =#
-filename = "NACA4415Re500.jld"
+filename = "NACA4415Re500.jld2"
 u, t, sys = load_ns_solution(filename);
 
 #=
@@ -89,7 +89,7 @@ press = ViscousFlow.pressure(u,sys,t);
 
 # ### Plotting the vorticity field
 plot(ω,sys,levels=range(-15,15,length=30), color = :RdBu,clim=(-15,15),ylim=(-1,1),xlim=(-1,3),
-      size=(900,300),colorbar=:true,title="Vorticity field")
+      size=(900,300),colorbar=:true,bodyfill=true,title="Vorticity field")
 #=
 This is a contour plot. Each line represents a contour of constant value of the
 quantity we are plotting. Here, that value is **vorticity**.
@@ -117,7 +117,7 @@ is fluid motion out there, but no rotational motion in that flow.
 In this case, we also will create a line contour plot, but use the same color for each
 contour. Why do we do this? Maybe you have a guess once you look at it.
 =#
-plot(ψ,sys,levels=31, color = :Black, xlim = (-1,3),ylim=(-0.5,0.5),size=(900,400),title="Streamfunction field")
+plot(ψ,sys,levels=31, color = :Black, bodyfill=true, xlim = (-1,3),ylim=(-0.5,0.5),size=(900,400),title="Streamfunction field")
 
 #=
 These lines of constant streamfunction are **streamlines**. You can see the separated
@@ -129,8 +129,8 @@ flow region quite clearly as the region with "missing" streamlines on the upper 
 This is a vector field, so we will plot the components separately.
 =#
 plot(
-    plot(vel.u,sys,size=(900,300),levels=range(-0.1,1.5,length=31), color = :RdBu,clim=(-0.1,1.5),xlim=(-1,3),ylim=(-0.5,0.5),title="x component of velocity"),
-    plot(vel.v,sys,size=(900,300),color=:RdBu,levels=range(-0.15,0.15,length=31),clim=(-0.15,0.15),xlim=(-1,3),ylim=(-0.5,0.5),title="y component of velocity"),
+    plot(vel.u,sys,size=(900,300),levels=range(-0.1,1.5,length=31), bodyfill=true, color = :RdBu,clim=(-0.1,1.5),xlim=(-1,3),ylim=(-0.5,0.5),title="x component of velocity"),
+    plot(vel.v,sys,size=(900,300),color=:RdBu,levels=range(-0.15,0.15,length=31),bodyfill=true, clim=(-0.15,0.15),xlim=(-1,3),ylim=(-0.5,0.5),title="y component of velocity"),
     layout=(2,1),
     size=(800,400)
     )
@@ -145,7 +145,7 @@ these plots.
 This field is the speed of the flow.
 =#
 umag = mag(vel)
-plot(umag,sys,color = :RdBu, ylim = (-0.5,0.5),xlim = (-1,3),size=(900,400),title="Velocity magnitude field",colorbar=:true)
+plot(umag,sys,color = :RdBu, bodyfill=true, ylim = (-0.5,0.5),xlim = (-1,3),size=(900,400),title="Velocity magnitude field",colorbar=:true)
 
 #=
 Notice that the wake is clearly shown in this field, distinctly slower than the rest
@@ -162,7 +162,7 @@ $$C_p = \dfrac{p-p_\infty}{\frac{1}{2} \rho U_\infty^2}$$
 In this case, the free stream and density are both equal to 1, so we just divide pressure by
 0.5 (i.e., multiply pressure by 2) to get the pressure coefficient.
 =#
-plot(2*press,sys,levels=range(-1.5,1.5,length=31),color=:RdBu,clim=(-1.5,1.5),xlim=(-1,1),ylim=(-0.5,0.5),
+plot(2*press,sys,levels=range(-1.5,1.5,length=31),color=:RdBu,bodyfill=true, clim=(-1.5,1.5),xlim=(-1,1),ylim=(-0.5,0.5),
         colorbar=:true,size=(900,400),title="Pressure coefficient")
 #=
 There are two notable features in the pressure. Along the upper part of the wing,
