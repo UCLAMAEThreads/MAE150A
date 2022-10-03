@@ -83,9 +83,11 @@ This is basically a matrix that multiplies a vector of grid data.
 What we are using here is the *inverse* of this operator, using something
 called the lattice Green's function.
 =#
-# ψ is a placeholder for -ω
-ψ = -ω
-# after the following step, ψ is now the solution of the problem
+# Set ψ as a temporary placeholder for -ω
+ψ = -ω;
+# Then, after the following step, ψ is now the solution of the problem.
+# (This is called solving *in place*, since ψ enters as the right-hand side
+#  of this problem, and exits as the solution.)
 inverse_laplacian!(ψ,sys);
 
 # Plot the streamfunction contours
