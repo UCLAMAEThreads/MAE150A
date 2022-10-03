@@ -12,7 +12,7 @@ module MAE150A
   using Interpolations
   using JLD2
   using Requires
-  @reexport using RecursiveArrayTools
+  #@reexport using RecursiveArrayTools
   using Dierckx
   using Roots
   #using PyCall

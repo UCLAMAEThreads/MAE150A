@@ -44,13 +44,10 @@ ylim = (-2,2)
 g = PhysicalGrid(xlim,ylim,Δx)
 
 #=
-Set up some other data structures for later use. You shouldn't need to touch these.
+Set up some other data structures and operators for later use. This takes a moment,
+but you shouldn't need to do this again, as long as you use the same grid.
 =#
-ω = Nodes(Dual,size(g))
-umag = Nodes(Primal,size(g));
-
-# Also, set up the discrete Laplacian operator and its inverse
-L = plan_laplacian(ω,with_inverse=true);
+sys = viscousflow_system(g);
 
 #=
  ### Now set up a single vortex at the origin and let's look at it
@@ -61,15 +58,18 @@ In order to create a Gaussian distribution, we can make use of the `SpatialGauss
 gauss1 = SpatialGaussian(σ,σ,0,0,Γ);
 
 #=
-Then, we can evaluate this distribution on our grid with the `GeneratedField` function:
+Then, we can evaluate this distribution on our grid. The first step
+creates the basic flowfield, and the second evaluates the vorticity
+of this field. The last argument of vorticity is actually time. Time is
+irrelevant here, so we just set it to 0.
 =#
-vort = GeneratedField(ω,gauss1,g)
-ω .= vort();
+u = init_sol(gauss1,sys)
+ω = vorticity(u,sys,0);
 
 #=
 Now plot the vorticity field
 =#
-plot(ω,g,xlim=(-2,2),ylim=(-2,2),levels=range(0.001,10,length=31),xlabel=L"x",ylabel=L"y",title="Vorticity field")
+plot(ω,sys,xlim=(-2,2),ylim=(-2,2),levels=range(0.001,10,length=31),xlabel=L"x",ylabel=L"y",title="Vorticity field")
 
 #=
 #### Now let's compute the streamfunction
@@ -77,15 +77,21 @@ We need to solve the Poisson equation to get the streamfunction, $\psi$:
 
 $$ \nabla^2 \psi = -\omega $$
 
-Details, if interested: We have set up the $L$ operator to be a discrete version of $\nabla^2$
-on the grid (using finite differences). But strictly speaking, $L \approx \Delta x^2 \nabla^2$,
-where $\Delta x$ is the grid spacing. The inverse of $L$ is also available. We use the
-*backslash* (`\`) to provide this inverse. So the discrete solution is
+Details, if interested: In the creation of the `sys` earlier, we have set up
+a discrete version of the Laplacian operator on the grid (using finite differences).
+This is basically a matrix that multiplies a vector of grid data.
+What we are using here is the *inverse* of this operator, using something
+called the lattice Green's function.
 =#
-ψ = -Δx^2*(L\ω);
+# Set ψ as a temporary placeholder for -ω
+ψ = -ω;
+# Then, after the following step, ψ is now the solution of the problem.
+# (This is called solving *in place*, since ψ enters as the right-hand side
+#  of this problem, and exits as the solution.)
+inverse_laplacian!(ψ,sys);
 
 # Plot the streamfunction contours
-plot(ψ,g,color=:Black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamfunction")
+plot(ψ,sys,color=:Black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamfunction")
 
 #=
 Remember that each of these contours of streamfunction is a **streamline**. The only drawback
@@ -102,17 +108,19 @@ directed out of the screen),
 
 $$ \mathbf{u} = \nabla\times (\psi\mathbf{k}) $$
 
-The discrete curl operator is simply called `curl` but we have to divide by the grid
-spacing to get the correct approximation of the actual curl.
+First, we set up a blank set of velocity field data `vel`. Then we evaluate
+the curl. The discrete curl operator is simply called `curl!` (the ! indicates
+that `vel` is being changed by the action of this function.
 =#
-vel = curl(ψ)/Δx;
+vel = zeros_grid(sys)
+curl!(vel,ψ,sys);
 
 #=
 Now plot them
 =#
 plot(
-    plot(vel.u,g,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="u component",colorbar=:true),
-    plot(vel.v,g,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="v component",colorbar=:true),
+    plot(vel.u,sys,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="u component",colorbar=:true),
+    plot(vel.v,sys,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="v component",colorbar=:true),
     size=(900,450))
 
 #=
@@ -127,7 +135,7 @@ The speed of the flow, $|\mathbf{u}|$, is a little easier to interpret. But wher
 speed the largest?
 =#
 umag = mag(vel);
-plot(umag,g,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Velocity magnitude",colorbar=:true)
+plot(umag,sys,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Velocity magnitude",colorbar=:true)
 
 #=
 To see the speed distribution a little better, try plotting along a slice $y = 0$.
@@ -154,13 +162,14 @@ Now, let's try putting more than one vortex together.
 σ = 0.3
 gauss2 = SpatialGaussian(σ,σ,-1,0,Γ) + SpatialGaussian(σ,σ,1,0,Γ);
 #-
-vort = GeneratedField(ω,gauss2,g);
-ω .= vort();
+u = init_sol(gauss2,sys)
+ω = vorticity(u,sys,0);
 #-
-plot(ω,g,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Vorticity field")
+plot(ω,sys,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Vorticity field")
 #-
-ψ = -Δx^2*(L\ω);
-plot(ψ,g,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamfunction")
+ψ = -ω
+inverse_laplacian!(ψ,sys)
+plot(ψ,sys,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamfunction")
 
 #=
 #### Stagnation points
@@ -174,10 +183,10 @@ is zero) of the $x$ and $y$ components of velocity and lay them on top of each o
 points correspond to where the zero contours of each component cross. We will put the streamlines
 in the plot, too, just for reference.
 =#
-vel = curl(ψ)/Δx;
-plot(ψ,g,color=:lightgray)
-plot!(vel.u,g,levels=[0],color=:red,xlim=(-2,2),ylim=(-2,2)) # x component in red
-plot!(vel.v,g,levels=[0],color=:blue) # y component in red
+curl!(vel,ψ,sys)
+plot(ψ,sys,color=:lightgray)
+plot!(vel.u,sys,levels=[0],color=:red,xlim=(-2,2),ylim=(-2,2)) # x component in red
+plot!(vel.v,sys,levels=[0],color=:blue) # y component in red
 #=
 So there are three stagnation points: one near each of the vortex centers and a third one
 right at the origin.
@@ -192,35 +201,35 @@ their radius. Explore!
 σ = 0.3
 gauss4 = SpatialGaussian(σ,σ,-1,0,-Γ) + SpatialGaussian(σ,σ,1,0,-Γ) + SpatialGaussian(σ,σ,0,1,Γ) + SpatialGaussian(σ,σ,0,-1,Γ);
 #-
-vort = GeneratedField(ω,gauss4,g);
-ω .= vort();
+u = init_sol(gauss4,sys)
+ω = vorticity(u,sys,0);
 #-
-plot(ω,g,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Vorticity field")
+plot(ω,sys,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Vorticity field")
 
 #-
-ψ = -Δx^2*(L\ω);
-ps = plot(ψ,g,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamfunction")
+ψ = -ω
+inverse_laplacian!(ψ,sys)
+ps = plot(ψ,sys,color=:black,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="Streamfunction")
 #-
-vel = curl(ψ)/Δx;
+curl!(vel,ψ,sys)
 plot(
-    plot(vel.u,g,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="u component",colorbar=:true),
-    plot(vel.v,g,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="v component",colorbar=:true),
+    plot(vel.u,sys,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="u component",colorbar=:true),
+    plot(vel.v,sys,xlim=(-2,2),ylim=(-2,2),xlabel=L"x",ylabel=L"y",title="v component",colorbar=:true),
     size=(900,450))
 
 #-
-plot(ψ,g,color=:lightgray)
-plot!(vel.u,g,levels=[0],color=:red,xlim=(-2,2),ylim=(-2,2)) # x component in red
-plot!(vel.v,g,levels=[0],color=:blue) # y component in red
+plot(ψ,sys,color=:lightgray)
+plot!(vel.u,sys,levels=[0],color=:red,xlim=(-2,2),ylim=(-2,2)) # x component in red
+plot!(vel.v,sys,levels=[0],color=:blue) # y component in red
 #=
 We can find the zeros of the stagnation points by looking for the minima of $|\mathbf{u}|^2$.
 For this, we will use the `NLsolve` package:
 =#
 using NLsolve
 #=
-This calculates $|\mathbf{u}|^2$ on the grid. The `∘`, which is generated by typing
-`\circ`, carries out multiplication at each point on the grid.
+This calculates $|\mathbf{u}|^2$ on the grid.
 =#
-umagsq = mag(vel)∘mag(vel);
+umagsq = magsq(vel);
 #=
 Now we create an interpolatable field of |\mathbf{u}|^2
 =#
@@ -245,9 +254,9 @@ plot. Note that `scatter` expects an array of x locations and an array of
 y locations, whereas `sol.zero` is a single array, containing the coordinates
 where `nlsolve` found the zero. So we have to put these separately into brackets:
 =#
-plot(ψ,g,color=:lightgray)
-plot!(vel.u,g,levels=[0],color=:red,xlim=(-2,2),ylim=(-2,2)) # x component in red
-plot!(vel.v,g,levels=[0],color=:blue)
+plot(ψ,sys,color=:lightgray)
+plot!(vel.u,sys,levels=[0],color=:red,xlim=(-2,2),ylim=(-2,2)) # x component in red
+plot!(vel.v,sys,levels=[0],color=:blue)
 scatter!([sol.zero[1]],[sol.zero[2]],markersize=10)
 #=
 You can do this for the other stagnation points, too. Just change your initial guess.
