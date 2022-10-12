@@ -131,9 +131,11 @@ plot!(p,v) ## This adds markers for the vortices
 
 #=
 Let's evaluate the velocity at the origin, which is a convenient point on the
-vertical line in the middle. (Again, the last argument is time, which is irrelevant.)
+vertical line in the middle. For this, we use the `induce_velocity` function.
+(The last argument is time, which is irrelevant, so we just set it to zero.)
 =#
-induce_velocity(0.0+im*0.0,v,0.0)
+z_eval = 0.0+0.0*im
+induce_velocity(z_eval,v,0.0)
 
 #=
 The real part ($u$) is zero (as expected on this line of symmetry) and the imaginary part

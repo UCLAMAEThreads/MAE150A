@@ -4,7 +4,8 @@
 export GridCache
 
 import ViscousFlow: Nodes, Edges, Primal, Dual, BasicILMCache, x_gridcurl, y_gridcurl,
-                    x_gridgrad, y_gridgrad, PhysicalGrid, SurfaceScalarCache
+                    x_gridgrad, y_gridgrad, PhysicalGrid, SurfaceScalarCache,
+                    zeros_gridcurl, zeros_gridgrad
 
 PotFlowElements = Union{PotentialFlow.Element,Vector{V} where {V<:PotentialFlow.Element},Tuple}
 
@@ -16,7 +17,8 @@ function ViscousFlow.streamfunction(v::PotFlowElements,cache::BasicILMCache;angl
         rot = exp(-im*(π+angle))  # rotation operator, which moves rotates from $\tau$ to $-\pi$.
         zg .*= rot
     end
-    PotentialFlow.streamfunction(zg,v)
+    ψ = zeros_gridcurl(cache)
+    ψ .= PotentialFlow.streamfunction(zg,v)
 end
 
 function ViscousFlow.streamfunction!(ψ::Nodes{Dual},v::PotFlowElements,cache::BasicILMCache;kwargs...)
@@ -28,6 +30,7 @@ function ViscousFlow.velocity(v::PotFlowElements,cache::BasicILMCache)
     y = y_gridgrad(cache)
     zgu = x.u + im*y.u
     zgv = x.v + im*y.v
+    vel = zeros_gridgrad(cache)
     vel.u .= real(induce_velocity(zgu,v,0.0))
     vel.v .= imag(induce_velocity(zgv,v,0.0))
     return vel
