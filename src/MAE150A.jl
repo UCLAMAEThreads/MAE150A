@@ -87,6 +87,11 @@ module MAE150A
 
       include("arrows.jl")
 
+      @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
+        Plots.gr()
+        @reexport using LaTeXStrings
+      end
+
     end
 
     @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
@@ -101,6 +106,11 @@ module MAE150A
 
       include("potentialflow/utils.jl")
       include("potentialflow/trajectories.jl")
+
+      @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
+        include("potentialflow/grid.jl")
+      end
+
     end
 
   end
