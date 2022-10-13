@@ -15,9 +15,7 @@ module MAE150A
   #@reexport using RecursiveArrayTools
   using Dierckx
   using Roots
-  #using PyCall
-  #using PyPlot
-  using Conda
+  #using Conda
 
 
   export initialize_environment,initialize_ns_solver,
@@ -45,13 +43,14 @@ module MAE150A
 
     @require Plots="91a5bcdd-55d7-5caf-9e0b-520d859cae80" begin
 
-      @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
+      #@require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
           Plots.gr()
           @reexport using LaTeXStrings
 
 
-      end
+      #end
 
+      #=
       @require PotentialFlow="73af2aaf-3f58-5b29-82a9-435ecf827f5b" begin
       if isdefined(Main, :IJulia) && Main.IJulia.inited
         # The Pkg.build does not work if non-development package, so need to
@@ -67,18 +66,16 @@ module MAE150A
           _hasmatplotlib() || error("Project file is not writable. Cannot build PyCall")
         end
       end
+      =#
 
+      #using PyCall
+      #@reexport using LaTeXStrings
 
-      # Get LaTeXStrings from PyPlot
-      #using PyPlot: LaTeXStrings
-      using PyCall
-      @reexport using LaTeXStrings
-
-      Plots.pyplot()
-      rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
+      #Plots.pyplot()
+      #rcParams = Plots.PyPlot.PyDict(Plots.PyPlot.matplotlib."rcParams")
 
       # Ensure that LaTeX stuff is handled
-      rcParams["mathtext.fontset"] = "cm"
+      #rcParams["mathtext.fontset"] = "cm"
 
       end
 
@@ -87,10 +84,10 @@ module MAE150A
 
       include("arrows.jl")
 
-      @require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
-        Plots.gr()
-        @reexport using LaTeXStrings
-      end
+      #@require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
+        #Plots.gr()
+        #@reexport using LaTeXStrings
+      #end
 
     end
 
