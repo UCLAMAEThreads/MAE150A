@@ -25,9 +25,8 @@ module MAE150A
         convective_acceleration, mag, ddt, pressure,
         OseenVortex,
         complexgrid, vortex_patch, dotproduct,equilateraltriangle,circle,
-        simulate_flow,surface_velocity,
-        add_arrow!,add_arrows!,
-        falknerskan
+        simulate_flow,surface_velocity,falknerskan,
+        #add_arrow!,add_arrows!
 
 
   repo_directory = joinpath(@__DIR__,"..")
@@ -82,7 +81,7 @@ module MAE150A
       Plots.default(markerstrokealpha = 0, legend = false,
         dpi = 100, size = (400, 300), grid = false)
 
-      include("arrows.jl")
+      #include("arrows.jl")
 
       #@require ViscousFlow="103da179-b3e4-57c1-99a4-586354eb2c5a" begin
         #Plots.gr()
