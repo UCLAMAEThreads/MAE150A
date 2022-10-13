@@ -15,7 +15,7 @@ module MAE150A
   #@reexport using RecursiveArrayTools
   using Dierckx
   using Roots
-  #using Conda
+  using Conda
 
 
   export save_ns_solution,load_ns_solution, get_flowfield,
@@ -75,7 +75,7 @@ module MAE150A
       # Ensure that LaTeX stuff is handled
       #rcParams["mathtext.fontset"] = "cm"
 
-      end
+      #end
 
       Plots.default(markerstrokealpha = 0, legend = false,
         dpi = 100, size = (400, 300), grid = false)
