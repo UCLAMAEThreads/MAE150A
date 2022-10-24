@@ -48,12 +48,12 @@ Re = U∞*L/ν
 #=
 Now let's load in the solution
 =#
-u, t, sys = load_ns_solution("FlatPlateRe500.jld");
+u, t, sys = load_ns_solution("FlatPlateRe500.jld2");
 
 # For later use, let's get the vorticity, velocity, and streamfunction:
-ω = vorticity(u,sys,t)
-vel = velocity(u,sys,t)
-ψ = streamfunction(u,sys,t);
+ω = ViscousFlow.vorticity(u,sys,t)
+vel = ViscousFlow.velocity(u,sys,t)
+ψ = ViscousFlow.streamfunction(u,sys,t);
 
 #=
 ### The vorticity
@@ -90,7 +90,7 @@ Let's plot the velocity profile at different places along the plate. To do that,
 we first get a version of the $u$ and $v$ components that we can evaluate
 anywhere.
 =#
-ufcn, vfcn = interpolatable_field(vel,sys.grid);
+ufcn, vfcn = interpolatable_field(vel,sys.base_cache.g);
 
 # For example, we can evaluate the $x$ component of velocity at $(0.5,0.25)$:
 ufcn(0.5,0.25)
@@ -169,6 +169,11 @@ fx, fy = force(u,sys,t,1)
 # The drag coefficient is $C_D = f_x/\frac{1}{2}\rho U_\infty^2 L$
 CD = fx/(0.5*ρ*U∞^2*L)
 
+# The lift coefficient is $C_L = f_y/\frac{1}{2}\rho U_\infty^2 L$
+CL = fy/(0.5*ρ*U∞^2*L)
+
+# It should not be surprising that the lift is zero, since the flow is symmetric.
+#-
 #=
 We will come back to these points soon. In the next notebook, we will
 discuss the Blasius boundary layer solution.

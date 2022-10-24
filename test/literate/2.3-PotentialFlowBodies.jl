@@ -456,7 +456,7 @@ $$
 \mathbf{u}_s(\mathbf{x}) = \frac{1}{2\pi}
 \int_{-\Delta s/2}^{\Delta s/2}
 \sigma(l) \frac{\mathbf{x} - \mathbf{x}_s(l)}
-{|\mathbf{x} - \mathbf{x}_s(l)|}
+{|\mathbf{x} - \mathbf{x}_s(l)|^2}
 \mathrm{d}l,
 $$
 
