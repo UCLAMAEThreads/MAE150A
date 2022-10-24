@@ -68,9 +68,10 @@ problem, so we set nondimensional free stream velocity in $x$ direction to 1
 and the nondimensional length of the body to 1, and there is no need to change
 these values.
 =#
-Re = 200 # Reynolds number
-U = 1.0 #
-U∞ = (U,0.0);
+my_params = Dict()
+my_params["Re"] = 200
+my_params["freestream speed"] = 1.0
+my_params["freestream angle"] = 0.0*π/180.0
 
 #=
 ### Discretize
@@ -81,14 +82,17 @@ better to make this smaller (it defaults to 2.0 if you don't set it).
 =#
 xlim = (-1.0,3.0)
 ylim = (-1.5,1.5)
-Δx, Δt = setstepsizes(Re,gridRe=4.0)
+my_params["grid Re"] = 4.0
+g = setup_grid(xlim,ylim,my_params)
 
 #=
 ### Set up bodies
 Here, we will set up a rectangle of half-height 0.5 (so its height is 1) and half-width 0.25
-at 45 degrees angle of attack. The function below sets up the basic body shape.
+at 45 degrees angle of attack. The function below sets up the basic body shape,
+and distributes points around the body.
 =#
-body = Rectangle(0.5,0.25,1.5Δx)
+Δs = surface_point_spacing(g,my_params)
+body = Rectangle(0.5,0.25,Δs)
 
 #=
 We place the body at a desired location and orientation with the `RigidTransform`
@@ -108,14 +112,14 @@ plot(body,xlim=xlim,ylim=ylim)
 This step is like the previous notebook, but now we also provide the body and
 the freestream:
 =#
-sys = NavierStokes(Re,Δx,xlim,ylim,Δt,body,freestream = U∞)
+sys = viscousflow_system(g,body,phys_params=my_params);
 
 #=
 ### Initialize
 Now, we initialize with zero vorticity. Note that we do this by calling
-`newstate` with no argument except for `sys` itself.
+`init_sol` with no argument except for `sys` itself.
 =#
-u0 = newstate(sys)
+u0 = init_sol(sys)
 
 #=
 and now create the integrator, with a long enough time span to hold the whole
